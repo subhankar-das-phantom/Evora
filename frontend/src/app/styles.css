@@ -1,0 +1,109 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Light Theme (default) ─── */
+:root {
+  color-scheme: light;
+
+  --surface-primary: #FAFAF9;
+  --surface-secondary: #FFFFFF;
+  --surface-tertiary: rgba(255, 255, 255, 0.8);
+  --surface-muted: #F5F5F4;
+  --surface-hover: #E7E5E4;
+
+  --text-primary: #1C1917;
+  --text-secondary: #44403C;
+  --text-muted: #A8A29E;
+
+  --border: #E7E5E4;
+  --border-soft: #F5F5F4;
+
+  --scrollbar-track: #F5F5F4;
+  --scrollbar-thumb: #D6D3D1;
+}
+
+/* ─── Dark Theme ─── */
+.dark {
+  color-scheme: dark;
+
+  --surface-primary: #0C0F17;
+  --surface-secondary: #141820;
+  --surface-tertiary: rgba(20, 24, 32, 0.85);
+  --surface-muted: #1C1C1F;
+  --surface-hover: rgba(255, 255, 255, 0.05);
+
+  --text-primary: #E7E5E4;
+  --text-secondary: #A8A29E;
+  --text-muted: #57534E;
+
+  --border: #27272A;
+  --border-soft: #1C1C1F;
+
+  --scrollbar-track: #141820;
+  --scrollbar-thumb: #27272A;
+}
+
+/* ─── Base Styles ─── */
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Accessibility ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Scrollbar ─── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 9999px;
+}
+
+/* ─── Container Utilities ─── */
+.container-dashboard {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.container-content {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+}
+
+.container-reading {
+  @apply mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8;
+}
