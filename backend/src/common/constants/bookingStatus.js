@@ -1,0 +1,7 @@
+export const BOOKING_STATUS = {
+  BOOKED: "BOOKED",
+  CANCELLED: "CANCELLED"
+};
+
+export const BOOKING_STATUS_VALUES = Object.values(BOOKING_STATUS);
+
