@@ -1,0 +1,9 @@
+export const EVENT_STATUS = {
+  DRAFT: "DRAFT",
+  PUBLISHED: "PUBLISHED",
+  COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED"
+};
+
+export const EVENT_STATUS_VALUES = Object.values(EVENT_STATUS);
+
