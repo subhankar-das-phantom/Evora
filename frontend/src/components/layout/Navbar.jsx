@@ -28,7 +28,7 @@ export function Navbar() {
   };
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-evora-border/50 bg-evora-surface-primary/80 backdrop-blur-md">
+    <header className="fixed top-0 z-50 w-full bg-evora-surface-primary/80 backdrop-blur-md">
       <div className="container-content flex h-16 items-center justify-between">
         {/* Logo */}
         <Link to="/" className="font-display text-xl font-bold tracking-tight text-evora-primary">
