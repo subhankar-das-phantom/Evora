@@ -98,6 +98,12 @@ async function seed() {
 
     console.log("Creating events...");
     const categories = ["TECHNOLOGY", "BUSINESS", "DESIGN", "NETWORKING"];
+    const categoryImages = {
+      TECHNOLOGY: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop", // Techy/Digital
+      BUSINESS: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1000&auto=format&fit=crop", // Corporate buildings
+      DESIGN: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=1000&auto=format&fit=crop", // Design/Colors
+      NETWORKING: "https://images.unsplash.com/photo-1515169067868-5387ec356754?q=80&w=1000&auto=format&fit=crop" // Event crowd
+    };
     const venues = ["Auditorium A", "Conference Hall 4", "Grand Ballroom", "Online"];
     const testEvents = [];
 
@@ -112,6 +118,7 @@ async function seed() {
         slug: `${slugify(title)}-${Date.now()}-${i}`,
         description: "Explore the bleeding edge of software engineering, artificial intelligence, and scalable cloud structures in this premium tech summit event.",
         category: categories[i % categories.length],
+        banner: categoryImages[categories[i % categories.length]],
         venue: venues[i % venues.length],
         startDate,
         endDate,
@@ -136,6 +143,7 @@ async function seed() {
         slug: `${slugify(title)}-${Date.now()}-${i}-past`,
         description: "A past webinar looking at standard design and project management structures within medium enterprise organizations.",
         category: categories[i % categories.length],
+        banner: categoryImages[categories[i % categories.length]],
         venue: venues[i % venues.length],
         startDate,
         endDate,
