@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import { useNavigate } from "react-router-dom";
 import { Users, Calendar, TicketCheck, ArrowUpRight } from "lucide-react";
 import { fetcher } from "@/api/axios";
 import { DataTable } from "@/components/ui/DataTable";
@@ -40,6 +41,8 @@ export default function AdminDashboard() {
     },
   ];
 
+  const navigate = useNavigate();
+
   const columns = [
     { header: "Event Title", accessor: "title" },
     { header: "Category", accessor: "category" },
@@ -58,7 +61,10 @@ export default function AdminDashboard() {
     { 
       header: "Actions", 
       render: () => (
-        <button className="text-evora-primary transition-colors hover:text-evora-primary-hover">
+        <button 
+          onClick={() => navigate("/dashboard/admin/events")}
+          className="text-evora-primary transition-colors hover:text-evora-primary-hover"
+        >
           Manage
         </button>
       )
@@ -111,7 +117,10 @@ export default function AdminDashboard() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-semibold text-evora-text-primary">Recent Events</h2>
-          <button className="text-sm font-medium text-evora-primary hover:text-evora-primary-hover">
+          <button 
+            onClick={() => navigate("/dashboard/admin/events")}
+            className="text-sm font-medium text-evora-primary hover:text-evora-primary-hover"
+          >
             View All
           </button>
         </div>
