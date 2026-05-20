@@ -5,6 +5,15 @@ import { format } from "date-fns";
 export function EventCard({ event }) {
   const { _id, title, category, venue, startDate, banner, image } = event;
 
+  const fallbackImages = {
+    TECHNOLOGY: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop", // Techy/Digital
+    BUSINESS: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1000&auto=format&fit=crop", // Corporate buildings
+    DESIGN: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=1000&auto=format&fit=crop", // Design/Colors
+    NETWORKING: "https://images.unsplash.com/photo-1515169067868-5387ec356754?q=80&w=1000&auto=format&fit=crop" // Event crowd
+  };
+
+  const defaultImage = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1000&auto=format&fit=crop";
+
   return (
     <Link 
       to={`/events/${_id}`}
@@ -12,7 +21,7 @@ export function EventCard({ event }) {
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-evora-surface-muted">
         <img 
-          src={banner || image || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1000&auto=format&fit=crop"} 
+          src={banner || image || fallbackImages[category] || defaultImage} 
           alt={title}
           className="h-full w-full object-cover transition-transform duration-large ease-premium group-hover:scale-105"
           loading="lazy"
