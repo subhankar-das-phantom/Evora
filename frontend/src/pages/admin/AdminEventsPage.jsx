@@ -1,6 +1,6 @@
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { api, fetcher } from "@/api/axios";
 import { uiStore } from "@/store/uiStore";
 import { DataTable } from "@/components/ui/DataTable";
@@ -14,18 +14,21 @@ export default function AdminEventsPage() {
   const { data: responseData, isLoading } = useSWR(adminEventsKey, fetcher);
   const pushToast = uiStore((s) => s.pushToast);
   
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingEventId, setEditingEventId] = useState(null);
   
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     title: "",
     description: "",
     startDate: "",
     endDate: "",
     venue: "",
     category: "TECHNOLOGY",
-    maxSeats: 100
-  });
+    maxSeats: 100,
+    banner: ""
+  };
+  const [formData, setFormData] = useState(defaultFormData);
 
   const events = responseData?.items || responseData?.events || [];
 
@@ -41,7 +44,34 @@ export default function AdminEventsPage() {
     }
   };
 
-  const handleCreateSubmit = async (e) => {
+  const handleEditClick = (event) => {
+    setFormData({
+      title: event.title,
+      description: event.description,
+      startDate: event.startDate ? event.startDate.slice(0, 16) : "",
+      endDate: event.endDate ? event.endDate.slice(0, 16) : "",
+      venue: event.venue,
+      category: event.category,
+      maxSeats: event.maxSeats,
+      banner: event.banner || ""
+    });
+    setEditingEventId(event._id);
+    setIsModalOpen(true);
+  };
+
+  const openCreateModal = () => {
+    setEditingEventId(null);
+    setFormData(defaultFormData);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingEventId(null);
+    setFormData(defaultFormData);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
@@ -49,6 +79,7 @@ export default function AdminEventsPage() {
       const description = formData.description.trim();
       const venue = formData.venue.trim();
       const category = formData.category.trim();
+      const banner = formData.banner.trim();
       const maxSeats = Number(formData.maxSeats);
       const startDate = new Date(formData.startDate);
       const endDate = new Date(formData.endDate);
@@ -83,15 +114,25 @@ export default function AdminEventsPage() {
         description,
         venue,
         category,
-        status: "PUBLISHED",
         maxSeats,
+        banner: banner || undefined,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString()
       };
-      await api.post("/events", payload);
-      pushToast({ type: "success", message: "Event created successfully." });
-      setIsCreateModalOpen(false);
-      setFormData({ title: "", description: "", startDate: "", endDate: "", venue: "", category: "TECHNOLOGY", maxSeats: 100 });
+      
+      if (!editingEventId) {
+        payload.status = "PUBLISHED";
+      }
+
+      if (editingEventId) {
+        await api.patch(`/events/${editingEventId}`, payload);
+        pushToast({ type: "success", message: "Event updated successfully." });
+      } else {
+        await api.post("/events", payload);
+        pushToast({ type: "success", message: "Event created successfully." });
+      }
+      
+      closeModal();
       mutate(adminEventsKey);
     } catch (error) {
       // Error handled by interceptor
@@ -118,13 +159,22 @@ export default function AdminEventsPage() {
     {
       header: "Actions",
       render: (row) => (
-        <button 
-          onClick={() => handleDelete(row._id)}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
-          title="Delete Event"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => handleEditClick(row)}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-evora-primary transition-colors hover:bg-evora-primary/10"
+            title="Edit Event"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button 
+            onClick={() => handleDelete(row._id)}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+            title="Delete Event"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       )
     }
   ];
@@ -134,9 +184,9 @@ export default function AdminEventsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-semibold text-evora-text-primary">Manage Events</h1>
-          <p className="mt-1 text-sm text-evora-text-secondary">Create, monitor, and remove events from the platform.</p>
+          <p className="mt-1 text-sm text-evora-text-secondary">Create, modify, and remove events from the platform.</p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+        <Button onClick={openCreateModal} className="gap-2">
           <Plus className="h-4 w-4" />
           Create Event
         </Button>
@@ -149,11 +199,11 @@ export default function AdminEventsPage() {
       )}
 
       <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Create New Event"
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingEventId ? "Edit Event" : "Create New Event"}
       >
-        <form onSubmit={handleCreateSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <Input 
             label="Event Title" 
             placeholder="e.g. Future of Tech Summit"
@@ -198,6 +248,13 @@ export default function AdminEventsPage() {
             onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
           />
 
+          <Input 
+            label="Banner URL (Optional)" 
+            placeholder="https://example.com/image.jpg"
+            value={formData.banner}
+            onChange={(e) => setFormData({ ...formData, banner: e.target.value })}
+          />
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-evora-text-primary">Category</label>
@@ -223,11 +280,11 @@ export default function AdminEventsPage() {
           </div>
 
           <div className="mt-6 flex justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setIsCreateModalOpen(false)}>
+            <Button type="button" variant="ghost" onClick={closeModal}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Event"}
+              {isSubmitting ? "Saving..." : editingEventId ? "Save Changes" : "Create Event"}
             </Button>
           </div>
         </form>
