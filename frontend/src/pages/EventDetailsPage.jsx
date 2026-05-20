@@ -71,6 +71,15 @@ export default function EventDetailsPage() {
     }
   };
 
+  const fallbackImages = {
+    TECHNOLOGY: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop", // Techy/Digital
+    BUSINESS: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop", // Corporate buildings
+    DESIGN: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=2000&auto=format&fit=crop", // Design/Colors
+    NETWORKING: "https://images.unsplash.com/photo-1515169067868-5387ec356754?q=80&w=2000&auto=format&fit=crop" // Event crowd
+  };
+
+  const defaultImage = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2000&auto=format&fit=crop";
+
   return (
     <article className="container-reading pb-24">
       {/* Back Link */}
@@ -84,7 +93,7 @@ export default function EventDetailsPage() {
       {/* Cinematic Banner */}
       <div className="relative mb-12 aspect-[21/9] w-full overflow-hidden rounded-2xl bg-evora-surface-muted shadow-soft">
         <img 
-          src={banner || image || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2000&auto=format&fit=crop"} 
+          src={banner || image || fallbackImages[category] || defaultImage} 
           alt={title}
           className="h-full w-full object-cover"
         />
