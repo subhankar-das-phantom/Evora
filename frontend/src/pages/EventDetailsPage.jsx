@@ -1,159 +1,261 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import useSWR from "swr";
-import { format } from "date-fns";
-import { Calendar, MapPin, Users, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import { Calendar, MapPin, Clock, Share2, User } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { fetcher } from "@/api/axios";
-import { bookingsApi } from "@/features/bookings/bookings.api";
-import { uiStore } from "@/store/uiStore";
+import { Skeleton, EventCardSkeleton } from "@/components/ui/Skeleton";
+import { EventCard } from "@/components/cards/EventCard";
+import { useEventDetails, useEvents } from "@/hooks/useEvents";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
+import { uiStore } from "@/store/uiStore";
+import { formatDate, seatsLeft } from "@/utils/format";
+import { useState } from "react";
+import { cn } from "@/utils/cn";
 
 export default function EventDetailsPage() {
-  const navigate = useNavigate();
   const { eventId } = useParams();
-  const { data, error, isLoading, mutate } = useSWR(eventId ? `/events/${eventId}` : null, fetcher);
+  const { event, isLoading, mutate } = useEventDetails(eventId);
+  const { events: relatedEvents } = useEvents({ limit: 3 });
+  const { isAuthenticated } = useAuth();
   const pushToast = uiStore((s) => s.pushToast);
-  const { isAuthenticated, user } = useAuth();
-  const [isBooking, setIsBooking] = useState(false);
+  const [booking, setBooking] = useState(false);
+
+  const remaining = event ? seatsLeft(event) : null;
+  const isLowSeats = remaining !== null && remaining > 0 && remaining <= 10;
+  const isSoldOut = remaining === 0;
+  const seatPercent = event
+    ? Math.round(((event.bookedSeats || 0) / (event.maxSeats || 1)) * 100)
+    : 0;
+
+  const handleBook = async () => {
+    if (!isAuthenticated) {
+      pushToast({ type: "info", message: "Please login to book this event." });
+      return;
+    }
+    setBooking(true);
+    try {
+      await api.post(endpoints.bookings.create, { eventId });
+      pushToast({ type: "success", message: "Booking confirmed!" });
+      mutate();
+    } catch {
+      // Error handled by interceptor
+    } finally {
+      setBooking(false);
+    }
+  };
 
   if (isLoading) {
     return (
-      <div className="container-reading space-y-8 py-8">
-        <Skeleton className="aspect-[21/9] w-full" />
-        <Skeleton className="h-12 w-2/3" />
-        <div className="flex gap-4">
-          <Skeleton className="h-6 w-32" />
-          <Skeleton className="h-6 w-32" />
-        </div>
+      <div className="pt-8 pb-24 px-4 sm:px-6 max-w-7xl mx-auto space-y-6">
+        <Skeleton className="h-64 md:h-96 w-full rounded-2xl" />
+        <Skeleton className="h-8 w-96" />
+        <Skeleton className="h-4 w-64" />
         <Skeleton className="h-40 w-full" />
       </div>
     );
   }
 
-  if (error || !data) {
+  if (!event) {
     return (
-      <div className="container-reading py-20">
-        <EmptyState title="Event not found" description="The event you are looking for does not exist or has been removed." />
+      <div className="pt-24 pb-24 text-center">
+        <h2 className="font-headline text-headline-lg text-text-primary mb-2">
+          Event not found
+        </h2>
+        <p className="text-text-muted mb-6">
+          The event you&apos;re looking for doesn&apos;t exist.
+        </p>
+        <Link to="/events">
+          <Button variant="secondary">Browse Events</Button>
+        </Link>
       </div>
     );
   }
 
-  const { title, description, category, venue, startDate, endDate, maxSeats, bookedSeats, banner, image } = data || {};
-  const availableSeats = maxSeats - bookedSeats;
-  const isUser = user?.role === "USER";
-  const hasEnded = endDate ? new Date(endDate) < new Date() : false;
-
-  const handleBookTicket = async () => {
-    if (!isAuthenticated) {
-      pushToast({ type: "info", message: "Please sign in as a user to book tickets." });
-      navigate("/login");
-      return;
-    }
-    if (!isUser) {
-      pushToast({ type: "error", message: "Only user accounts can book tickets." });
-      return;
-    }
-    if (hasEnded || availableSeats <= 0 || isBooking) return;
-
-    setIsBooking(true);
-    try {
-      await bookingsApi.createBooking(eventId);
-      pushToast({ type: "success", message: "Ticket booked successfully." });
-      await mutate();
-    } catch (_error) {
-      // Errors are surfaced by axios interceptor + toast
-    } finally {
-      setIsBooking(false);
-    }
-  };
-
-  const fallbackImages = {
-    TECHNOLOGY: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop", // Techy/Digital
-    BUSINESS: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop", // Corporate buildings
-    DESIGN: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=2000&auto=format&fit=crop", // Design/Colors
-    NETWORKING: "https://images.unsplash.com/photo-1515169067868-5387ec356754?q=80&w=2000&auto=format&fit=crop" // Event crowd
-  };
-
-  const defaultImage = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2000&auto=format&fit=crop";
-
   return (
-    <article className="container-reading pb-24">
-      {/* Back Link */}
-      <div className="mb-6">
-        <Link to="/events" className="inline-flex items-center text-sm font-medium text-evora-text-secondary transition-colors hover:text-evora-primary">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Events
-        </Link>
-      </div>
-
-      {/* Cinematic Banner */}
-      <div className="relative mb-12 aspect-[21/9] w-full overflow-hidden rounded-2xl bg-evora-surface-muted shadow-soft">
-        <img 
-          src={banner || image || fallbackImages[category] || defaultImage} 
-          alt={title}
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute left-6 top-6 rounded-full bg-evora-surface-secondary/90 px-4 py-1.5 text-sm font-semibold text-evora-text-primary backdrop-blur-md">
-          {category}
-        </div>
-      </div>
-
-      {/* Content Layout */}
-      <div className="grid gap-12 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-8">
-          <h1 className="font-display text-4xl font-semibold tracking-tight text-evora-text-primary sm:text-5xl">
-            {title}
-          </h1>
-          
-          <div className="prose prose-evora max-w-none text-evora-text-secondary">
-            <p className="whitespace-pre-wrap leading-relaxed">{description}</p>
+    <div className="pb-24">
+      {/* Hero Banner */}
+      <div className="relative w-full h-64 md:h-96 bg-surface-elevated overflow-hidden">
+        {event.bannerImage ? (
+          <img
+            src={event.bannerImage}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 via-accent/10 to-background" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        {event.category && (
+          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 bg-surface/80 backdrop-blur-md border border-border/50 text-label-md px-3 py-1.5 rounded-xl text-text-primary">
+            {event.category}
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Sidebar Sticky Panel */}
-        <div className="relative">
-          <div className="sticky top-24 flex flex-col space-y-6 rounded-2xl border border-evora-border bg-evora-surface-secondary p-6 shadow-soft">
-            <h3 className="font-display text-xl font-semibold text-evora-text-primary">Details</h3>
-            
-            <div className="flex flex-col gap-4 text-sm text-evora-text-secondary">
-              <div className="flex items-start gap-3">
-                <Calendar className="mt-0.5 h-5 w-5 text-evora-primary shrink-0" />
-                <div>
-                  <p className="font-medium text-evora-text-primary">Date & Time</p>
-                  <p>{startDate ? format(new Date(startDate), "MMMM d, yyyy") : "TBD"}</p>
-                  <p>{startDate ? format(new Date(startDate), "h:mm a") : ""} - {endDate ? format(new Date(endDate), "h:mm a") : ""}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-5 w-5 text-evora-primary shrink-0" />
-                <div>
-                  <p className="font-medium text-evora-text-primary">Location</p>
-                  <p>{venue}</p>
-                </div>
-              </div>
+      {/* Content */}
+      <div className="px-4 sm:px-6 max-w-7xl mx-auto -mt-16 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main */}
+          <div className="lg:col-span-2 space-y-6">
+            <h1 className="font-headline text-headline-lg md:text-display-md tracking-tight text-2xl sm:text-3xl md:text-4xl font-bold">
+              {event.title}
+            </h1>
 
-              <div className="flex items-start gap-3">
-                <Users className="mt-0.5 h-5 w-5 text-evora-primary shrink-0" />
-                <div>
-                  <p className="font-medium text-evora-text-primary">Availability</p>
-                  <p>{availableSeats} spots left</p>
-                </div>
+            {/* Organizer */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                <User size={18} />
+              </div>
+              <div>
+                <p className="text-label-sm text-text-muted">Organized by</p>
+                <p className="text-body-sm font-medium text-text-primary">
+                  {event.organizer?.name || "Evora Events"}
+                </p>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-evora-border-soft">
-              <Button size="lg" className="w-full" onClick={handleBookTicket} disabled={hasEnded || availableSeats <= 0 || isBooking}>
-                {hasEnded ? "Event Ended" : availableSeats <= 0 ? "Sold Out" : isBooking ? "Booking..." : "Book Ticket"}
+            {/* Meta */}
+            <div className="flex flex-wrap gap-4 sm:gap-6 py-4 border-y border-border/50">
+              <div className="flex items-center gap-2 text-text-muted">
+                <Calendar size={18} className="text-primary" />
+                <span className="text-body-sm">{formatDate(event.date)}</span>
+              </div>
+              <div className="flex items-center gap-2 text-text-muted">
+                <MapPin size={18} className="text-primary" />
+                <span className="text-body-sm">
+                  {event.venue || "Online Event"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-text-muted">
+                <Clock size={18} className="text-primary" />
+                <span className="text-body-sm">
+                  {event.duration || "Full Day"}
+                </span>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="prose prose-invert max-w-none">
+              <h3 className="font-headline text-headline-sm text-text-primary mb-3">
+                About this Event
+              </h3>
+              <p className="text-body-md text-text-secondary leading-relaxed whitespace-pre-line">
+                {event.description || "No description available."}
+              </p>
+            </div>
+          </div>
+
+          {/* Booking Sidebar (desktop) */}
+          <div className="hidden lg:block">
+            <div className="sticky top-24 bg-surface border border-border rounded-2xl p-6 space-y-5">
+              {/* Price */}
+              <div>
+                <p className="text-label-sm text-text-muted mb-1">Price</p>
+                <p className="text-display-md font-headline font-bold text-text-primary text-3xl">
+                  {event.price > 0 ? `$${event.price}` : "Free"}
+                </p>
+              </div>
+
+              {/* Seats */}
+              <div>
+                <div className="flex justify-between text-label-sm mb-2">
+                  <span className="text-text-muted">Seats available</span>
+                  <span
+                    className={cn(
+                      "font-medium",
+                      isLowSeats ? "text-warning" : "text-text-primary"
+                    )}
+                  >
+                    {remaining} / {event.maxSeats}
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-surface-elevated rounded-full overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all duration-500",
+                      seatPercent > 90
+                        ? "bg-error"
+                        : seatPercent > 70
+                        ? "bg-warning"
+                        : "bg-primary"
+                    )}
+                    style={{ width: `${seatPercent}%` }}
+                  />
+                </div>
+                {isLowSeats && (
+                  <p className="text-label-sm text-warning mt-1.5">
+                    Selling out fast!
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <Button
+                size="lg"
+                className="w-full shadow-glow-md hover:shadow-glow-lg"
+                onClick={handleBook}
+                isLoading={booking}
+                disabled={isSoldOut}
+              >
+                {isSoldOut ? "Sold Out" : "Book Now"}
+              </Button>
+              <Button
+                variant="secondary"
+                size="md"
+                className="w-full"
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  pushToast({
+                    type: "success",
+                    message: "Link copied to clipboard!",
+                  });
+                }}
+              >
+                <Share2 size={16} />
+                Share Event
               </Button>
             </div>
           </div>
         </div>
+
+        {/* Related Events */}
+        {relatedEvents.length > 0 && (
+          <section className="mt-16">
+            <h2 className="font-headline text-headline-md tracking-tight mb-6">
+              You might also like
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relatedEvents
+                .filter((e) => e._id !== eventId)
+                .slice(0, 3)
+                .map((e) => (
+                  <EventCard key={e._id} event={e} />
+                ))}
+            </div>
+          </section>
+        )}
       </div>
-    </article>
+
+      {/* Mobile Booking Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface/95 backdrop-blur-md border-t border-border p-4 flex items-center justify-between z-40">
+        <div>
+          <p className="text-headline-sm font-headline font-bold text-text-primary">
+            {event.price > 0 ? `$${event.price}` : "Free"}
+          </p>
+          <p className="text-label-sm text-text-muted">
+            {remaining} seats left
+          </p>
+        </div>
+        <Button
+          size="md"
+          onClick={handleBook}
+          isLoading={booking}
+          disabled={isSoldOut}
+          className="shadow-glow-sm"
+        >
+          {isSoldOut ? "Sold Out" : "Book Now"}
+        </Button>
+      </div>
+    </div>
   );
 }

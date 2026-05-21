@@ -2,38 +2,15 @@ import { create } from "zustand";
 
 const TOAST_TIMEOUT = 3200;
 
-function getInitialTheme() {
-  if (typeof window === "undefined") return "light";
-  const stored = localStorage.getItem("evora-theme");
-  if (stored === "dark" || stored === "light") return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+// Always dark mode - no toggle needed
+if (typeof window !== "undefined") {
+  document.documentElement.classList.add("dark");
 }
-
-function applyTheme(theme) {
-  const root = document.documentElement;
-  if (theme === "dark") {
-    root.classList.add("dark");
-  } else {
-    root.classList.remove("dark");
-  }
-  localStorage.setItem("evora-theme", theme);
-}
-
-// Apply on load immediately
-const initialTheme = getInitialTheme();
-applyTheme(initialTheme);
 
 export const uiStore = create((set) => ({
   isSidebarOpen: false,
   activeModal: null,
   toasts: [],
-  theme: initialTheme,
-  toggleTheme: () =>
-    set((state) => {
-      const next = state.theme === "dark" ? "light" : "dark";
-      applyTheme(next);
-      return { theme: next };
-    }),
   toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   closeSidebar: () => set({ isSidebarOpen: false }),
   openModal: (modalName) => set({ activeModal: modalName }),

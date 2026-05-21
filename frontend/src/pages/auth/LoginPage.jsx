@@ -1,104 +1,122 @@
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/Button";
+import { z } from "zod";
 import { Input } from "@/components/ui/Input";
-import { authApi } from "@/features/auth/auth.api";
+import { Button } from "@/components/ui/Button";
+import { api } from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { authStore } from "@/store/authStore";
+import { useState } from "react";
 
-const loginSchema = z.object({
+const schema = z.object({
   email: z.string().email("Please enter a valid email"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [globalError, setGlobalError] = useState("");
   const setSession = authStore((s) => s.setSession);
+  const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    resolver: zodResolver(loginSchema)
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(schema) });
 
-  const onSubmit = async (formData) => {
-    setIsLoading(true);
-    setGlobalError("");
+  const onSubmit = async (data) => {
+    setLoading(true);
     try {
-      const data = await authApi.login(formData);
-      setSession({ token: data.token, user: data.user });
-
-      // Redirect based on role
-      if (data.user?.mustResetPassword) {
+      const res = await api.post(endpoints.auth.login, data);
+      const payload = res.data?.data || res.data;
+      const token = payload?.token;
+      const user = payload?.user;
+      if (!token) return;
+      setSession({ token, user });
+      const role = user?.role;
+      if (
+        (role === "ADMIN" || role === "SUPER_ADMIN") &&
+        user?.firstLoginRequired
+      ) {
         navigate("/first-login-reset");
-      } else if (data.user?.role === "ADMIN" || data.user?.role === "SUPER_ADMIN") {
+      } else if (role === "ADMIN" || role === "SUPER_ADMIN") {
         navigate("/dashboard/admin");
       } else {
         navigate("/dashboard/user");
       }
-    } catch (err) {
-      setGlobalError(err?.response?.data?.message || "Invalid credentials. Please try again.");
+    } catch {
+      // Error handled by axios interceptor
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-2xl border border-evora-border bg-evora-surface-secondary p-8 shadow-soft">
-        <div className="text-center">
-          <h2 className="font-display text-3xl font-semibold tracking-tight text-evora-text-primary">
-            Welcome back
-          </h2>
-          <p className="mt-2 text-sm text-evora-text-secondary">
-            Sign in to your account to manage your events
-          </p>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative">
+      {/* Background glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="relative w-full max-w-[420px] bg-surface border border-border rounded-2xl p-8 sm:p-10 animate-fade-in">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Link
+            to="/"
+            className="text-2xl font-bold tracking-tighter text-text-primary font-headline"
+          >
+            Evora
+          </Link>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {globalError && (
-            <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
-              {globalError}
-            </div>
-          )}
-          
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-evora-text-primary">Email</label>
-              <Input
-                type="email"
-                {...register("email")}
-                error={errors.email?.message}
-                placeholder="you@example.com"
-              />
-              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
-            </div>
+        <h1 className="font-headline text-headline-md text-center text-text-primary mb-1">
+          Welcome back
+        </h1>
+        <p className="text-body-sm text-text-muted text-center mb-8">
+          Sign in to your account
+        </p>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-evora-text-primary">Password</label>
-              <Input
-                type="password"
-                {...register("password")}
-                error={errors.password?.message}
-                placeholder="••••••••"
-              />
-              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
-            </div>
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign in"}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <Input
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            error={errors.email?.message}
+            {...register("email")}
+          />
+          <Input
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            error={errors.password?.message}
+            {...register("password")}
+          />
+          <Button
+            type="submit"
+            size="lg"
+            isLoading={loading}
+            className="w-full shadow-glow-sm"
+          >
+            Sign In
           </Button>
         </form>
 
-        <div className="text-center text-sm text-evora-text-secondary">
-          Don't have an account?{" "}
-          <Link to="/register" className="font-medium text-evora-primary hover:text-evora-primary-hover transition-colors">
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-label-sm text-text-muted">or</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
+        <p className="text-center text-body-sm text-text-muted">
+          Don&apos;t have an account?{" "}
+          <Link
+            to="/register"
+            className="text-primary hover:text-primary-hover font-medium transition-colors"
+          >
             Sign up
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );

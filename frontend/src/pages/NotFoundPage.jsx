@@ -1,16 +1,26 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
+import { Home } from "lucide-react";
 
 export default function NotFoundPage() {
   return (
-    <div className="flex min-h-[80vh] flex-col items-center justify-center px-4 text-center">
-      <h1 className="font-display text-7xl font-bold text-evora-text-muted/30 sm:text-9xl">404</h1>
-      <h2 className="mt-4 font-display text-2xl font-semibold text-evora-text-primary">Page not found</h2>
-      <p className="mt-2 max-w-md text-evora-text-secondary">
-        The page you are looking for doesn't exist or has been moved.
+    <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center">
+      <div className="mb-6">
+        <span className="text-8xl font-headline font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+          404
+        </span>
+      </div>
+      <h1 className="font-headline text-headline-lg text-text-primary mb-3">
+        Page not found
+      </h1>
+      <p className="text-body-md text-text-muted mb-8 max-w-md">
+        The page you&apos;re looking for doesn&apos;t exist or has been moved.
       </p>
-      <Link to="/" className="mt-8 inline-flex h-11 items-center justify-center rounded-xl bg-evora-primary px-6 text-sm font-medium text-evora-primary-foreground shadow-soft transition-all duration-fast ease-premium hover:bg-evora-primary-hover">
-        Go Home
+      <Link to="/">
+        <Button variant="secondary" size="md">
+          <Home size={16} />
+          Back to Home
+        </Button>
       </Link>
     </div>
   );

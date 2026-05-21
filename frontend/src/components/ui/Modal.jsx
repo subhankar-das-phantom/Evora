@@ -1,48 +1,55 @@
-import { useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
+import { cn } from "@/utils/cn";
 
-export function Modal({ isOpen, onClose, title, children }) {
+export function Modal({ isOpen, onClose, title, children, className }) {
+  const overlayRef = useRef(null);
+
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
+    if (!isOpen) return;
+    const handleEsc = (e) => {
+      if (e.key === "Escape") onClose();
     };
-  }, [isOpen]);
+    document.addEventListener("keydown", handleEsc);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleEsc);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-evora-neutral-900/40 backdrop-blur-sm transition-opacity duration-medium ease-premium"
-        onClick={onClose}
-      />
-      
-      {/* Modal Panel */}
-      <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-evora-surface-tertiary p-6 text-left align-middle shadow-modal transition-all duration-medium ease-premium backdrop-blur-xl border border-white/20">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="font-display text-xl font-semibold text-evora-text-primary">
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-[90] flex items-center justify-center p-4"
+      onClick={(e) => e.target === overlayRef.current && onClose()}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        className={cn(
+          "relative z-10 w-full max-w-md bg-surface border border-border rounded-2xl shadow-xl animate-fade-in",
+          className
+        )}
+      >
+        <div className="flex items-center justify-between p-5 border-b border-border/50">
+          <h3 className="font-headline text-headline-sm text-text-primary">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-evora-text-secondary transition-colors hover:bg-evora-surface-hover hover:text-evora-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-evora-primary"
+            className="text-text-muted hover:text-text-primary transition-colors rounded-lg p-1 hover:bg-surface-elevated"
+            aria-label="Close modal"
           >
-            <X className="h-5 w-5" />
+            <X size={20} />
           </button>
         </div>
-        
-        <div className="mt-2">
-          {children}
-        </div>
+        <div className="p-5">{children}</div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }

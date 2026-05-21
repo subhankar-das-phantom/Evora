@@ -1,139 +1,178 @@
-import useSWR from "swr";
-import { useNavigate } from "react-router-dom";
-import { Users, Calendar, TicketCheck, ArrowUpRight } from "lucide-react";
-import { fetcher } from "@/api/axios";
-import { DataTable } from "@/components/ui/DataTable";
+import { Calendar, Ticket, DollarSign, Users, Plus } from "lucide-react";
+import { useAdminStats } from "@/hooks/useAdminStats";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Button } from "@/components/ui/Button";
+import { Link } from "react-router-dom";
+import { cn } from "@/utils/cn";
+
+const statusStyles = {
+  CONFIRMED: "bg-success/10 text-success border-success/20",
+  PENDING: "bg-warning/10 text-warning border-warning/20",
+  CANCELLED: "bg-error/10 text-error border-error/20",
+  CHECKED_IN: "bg-primary/10 text-primary border-primary/20",
+};
 
 export default function AdminDashboard() {
-  const { data: statsData, isLoading: statsLoading } = useSWR("/admin/analytics", fetcher);
-  const { data: recentEventsData, isLoading: eventsLoading } = useSWR("/events?limit=5", fetcher);
-
-  const stats = statsData || {
-    totalEvents: 0,
-    totalBookings: 0,
-    totalUsers: 0
-  };
-
-  const recentEvents = recentEventsData?.items || recentEventsData?.events || [];
+  const { stats, isLoading } = useAdminStats();
 
   const statCards = [
-    { 
-      label: "Total Events", 
-      value: stats.events, 
+    {
+      label: "Total Events",
+      value: stats?.totalEvents || 0,
       icon: Calendar,
-      trend: stats.eventsTrend ?? 12,
-      isPositive: (stats.eventsTrend ?? 12) >= 0 
+      color: "text-primary",
     },
-    { 
-      label: "Total Bookings", 
-      value: stats.bookings, 
-      icon: TicketCheck,
-      trend: stats.bookingsTrend ?? 8,
-      isPositive: (stats.bookingsTrend ?? 8) >= 0 
+    {
+      label: "Total Bookings",
+      value: stats?.totalBookings || 0,
+      icon: Ticket,
+      color: "text-accent",
     },
-    { 
-      label: "Total Users", 
-      value: stats.users, 
+    {
+      label: "Total Revenue",
+      value: `$${stats?.totalRevenue || 0}`,
+      icon: DollarSign,
+      color: "text-success",
+    },
+    {
+      label: "Active Users",
+      value: stats?.totalUsers || 0,
       icon: Users,
-      trend: stats.usersTrend ?? 24,
-      isPositive: (stats.usersTrend ?? 24) >= 0 
+      color: "text-cyan",
     },
-  ];
-
-  const navigate = useNavigate();
-
-  const columns = [
-    { header: "Event Title", accessor: "title" },
-    { header: "Category", accessor: "category" },
-    { 
-      header: "Status", 
-      render: (row) => (
-        <span className="inline-flex items-center rounded-full bg-evora-primary/10 px-2.5 py-0.5 text-xs font-semibold text-evora-primary">
-          {row.status || "Upcoming"}
-        </span>
-      )
-    },
-    { 
-      header: "Booked", 
-      render: (row) => `${row.bookedSeats}/${row.maxSeats}`
-    },
-    { 
-      header: "Actions", 
-      render: () => (
-        <button 
-          onClick={() => navigate("/dashboard/admin/events")}
-          className="text-evora-primary transition-colors hover:text-evora-primary-hover"
-        >
-          Manage
-        </button>
-      )
-    }
   ];
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-3xl font-semibold text-evora-text-primary">Admin Dashboard</h1>
-        <p className="mt-1 text-evora-text-secondary">Platform overview and operational controls.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="font-headline text-headline-lg tracking-tight">
+          Admin Dashboard
+        </h1>
+        <Link to="/dashboard/admin/events">
+          <Button size="sm">
+            <Plus size={16} />
+            Create Event
+          </Button>
+        </Link>
       </div>
 
-      {/* Analytics Overview */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        {statsLoading ? (
-          [1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full" />)
-        ) : (
-          statCards.map((stat, i) => (
-            <div key={i} className="flex flex-col rounded-2xl border border-evora-border bg-evora-surface-secondary p-6 shadow-soft">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-evora-text-secondary">{stat.label}</span>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-evora-surface-muted">
-                  <stat.icon className="h-5 w-5 text-evora-primary" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-baseline gap-2">
-                <span className="font-display text-3xl font-semibold text-evora-text-primary">
-                  {(stat.value ?? 0).toLocaleString()}
-                </span>
-                <span 
-                  className={`flex items-center text-xs font-medium ${
-                    stat.isPositive ? "text-evora-support" : "text-red-500"
-                  }`}
-                >
-                  <ArrowUpRight 
-                    className={`mr-0.5 h-3 w-3 transition-transform ${
-                      stat.isPositive ? "" : "rotate-90"
-                    }`} 
-                  />
-                  {Math.abs(stat.trend)}%
-                </span>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Recent Events Table */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold text-evora-text-primary">Recent Events</h2>
-          <button 
-            onClick={() => navigate("/dashboard/admin/events")}
-            className="text-sm font-medium text-evora-primary hover:text-evora-primary-hover"
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map(({ label, value, icon: Icon, color }) => (
+          <div
+            key={label}
+            className="bg-surface border border-border rounded-xl p-5 flex items-center gap-4"
           >
-            View All
-          </button>
+            <div
+              className={cn(
+                "w-11 h-11 rounded-xl flex items-center justify-center bg-surface-elevated",
+                color
+              )}
+            >
+              <Icon size={20} />
+            </div>
+            <div>
+              <p className="text-headline-md font-headline font-bold text-text-primary">
+                {isLoading ? <Skeleton className="h-6 w-16" /> : value}
+              </p>
+              <p className="text-label-sm text-text-muted">{label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent Bookings */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-headline text-headline-sm">Recent Bookings</h2>
+          <Link to="/dashboard/admin/bookings">
+            <Button variant="ghost" size="sm">
+              View all
+            </Button>
+          </Link>
         </div>
-        
-        {eventsLoading ? (
-          <Skeleton className="h-64 w-full" />
-        ) : (
-          <DataTable 
-            columns={columns} 
-            data={recentEvents} 
-            keyField="_id" 
-          />
-        )}
+
+        <div className="bg-surface border border-border rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border/50">
+                  <th className="text-left px-5 py-3 text-label-sm text-text-muted font-medium">
+                    User
+                  </th>
+                  <th className="text-left px-5 py-3 text-label-sm text-text-muted font-medium">
+                    Event
+                  </th>
+                  <th className="text-left px-5 py-3 text-label-sm text-text-muted font-medium hidden sm:table-cell">
+                    Date
+                  </th>
+                  <th className="text-left px-5 py-3 text-label-sm text-text-muted font-medium">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="border-b border-border/30">
+                      <td className="p-5">
+                        <Skeleton className="h-4 w-24" />
+                      </td>
+                      <td className="p-5">
+                        <Skeleton className="h-4 w-32" />
+                      </td>
+                      <td className="p-5 hidden sm:table-cell">
+                        <Skeleton className="h-4 w-20" />
+                      </td>
+                      <td className="p-5">
+                        <Skeleton className="h-4 w-16" />
+                      </td>
+                    </tr>
+                  ))
+                ) : stats?.recentBookings?.length > 0 ? (
+                  stats.recentBookings.slice(0, 10).map((booking) => (
+                    <tr
+                      key={booking._id}
+                      className="border-b border-border/30 hover:bg-surface-elevated/50 transition-colors"
+                    >
+                      <td className="px-5 py-4 text-body-sm text-text-primary">
+                        {booking.user?.name || "—"}
+                      </td>
+                      <td className="px-5 py-4 text-body-sm text-text-secondary truncate max-w-[200px]">
+                        {booking.event?.title || "—"}
+                      </td>
+                      <td className="px-5 py-4 text-body-sm text-text-muted hidden sm:table-cell">
+                        {booking.createdAt
+                          ? new Date(booking.createdAt).toLocaleDateString()
+                          : "—"}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={cn(
+                            "inline-flex px-2.5 py-0.5 rounded-full text-label-sm font-medium border",
+                            statusStyles[booking.status] ||
+                              statusStyles.PENDING
+                          )}
+                        >
+                          {booking.status?.replace("_", " ") || "Pending"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-5 py-12 text-center text-text-muted text-body-sm"
+                    >
+                      No bookings yet
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

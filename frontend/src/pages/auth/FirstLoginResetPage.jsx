@@ -1,107 +1,96 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock, ArrowRight } from "lucide-react";
-import { api } from "@/api/axios";
-import { authStore } from "@/store/authStore";
-import { uiStore } from "@/store/uiStore";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { api } from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
+import { authStore } from "@/store/authStore";
+import { uiStore } from "@/store/uiStore";
+import { useState } from "react";
+
+const schema = z
+  .object({
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 export default function FirstLoginResetPage() {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  
   const navigate = useNavigate();
-  const user = authStore((s) => s.user);
   const hydrateUser = authStore((s) => s.hydrateUser);
+  const user = authStore((s) => s.user);
   const pushToast = uiStore((s) => s.pushToast);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(schema) });
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    setIsSubmitting(true);
+  const onSubmit = async (data) => {
+    setLoading(true);
     try {
-      const response = await api.post("/auth/change-password-first-login", { 
-        newPassword: password 
+      await api.post(endpoints.auth.firstLoginPassword, {
+        newPassword: data.newPassword,
       });
-
-      // Update the user state locally to reflect the change
-      hydrateUser({
-        ...user,
-        firstLoginRequired: false
-      });
-
-      pushToast({
-        type: "success",
-        message: "Password updated successfully!"
-      });
-
-      // Redirect to dashboard
-      navigate("/dashboard/admin", { replace: true });
-    } catch (err) {
-      // General error handling is done by axios interceptor,
-      // but we can catch specific ones if needed.
+      hydrateUser({ ...user, firstLoginRequired: false });
+      pushToast({ type: "success", message: "Password updated successfully!" });
+      navigate("/dashboard/admin");
+    } catch {
+      // handled by interceptor
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8 rounded-2xl border border-evora-border bg-evora-surface-secondary p-8 shadow-soft">
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-evora-primary/10 mb-4">
-            <Lock className="h-6 w-6 text-evora-primary" />
-          </div>
-          <h2 className="font-display text-2xl font-semibold text-evora-text-primary">
-            Reset Required
-          </h2>
-          <p className="mt-2 text-sm text-evora-text-secondary">
-            For security reasons, you must change the temporary password provided by the Super Admin before continuing to the dashboard.
-          </p>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-warning/10 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="relative w-full max-w-[420px] bg-surface border border-border rounded-2xl p-8 sm:p-10 animate-fade-in">
+        <div className="text-center mb-8">
+          <span className="text-2xl font-bold tracking-tighter text-text-primary font-headline">
+            Evora
+          </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-4">
-            <Input
-              label="New Password"
-              type="password"
-              placeholder="Enter new secure password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            
-            <Input
-              label="Confirm Password"
-              type="password"
-              placeholder="Re-enter your new password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </div>
+        <h1 className="font-headline text-headline-md text-center text-text-primary mb-1">
+          Set your password
+        </h1>
+        <p className="text-body-sm text-text-muted text-center mb-8">
+          You must change your password before accessing the admin dashboard.
+        </p>
 
-          {error && (
-            <p className="text-sm font-medium text-red-500">{error}</p>
-          )}
-
-          <Button type="submit" className="w-full gap-2" disabled={isSubmitting}>
-            {isSubmitting ? "Updating..." : "Update Password"}
-            {!isSubmitting && <ArrowRight className="h-4 w-4" />}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <Input
+            label="New Password"
+            type="password"
+            placeholder="••••••••"
+            error={errors.newPassword?.message}
+            {...register("newPassword")}
+          />
+          <Input
+            label="Confirm Password"
+            type="password"
+            placeholder="••••••••"
+            error={errors.confirmPassword?.message}
+            {...register("confirmPassword")}
+          />
+          <Button
+            type="submit"
+            size="lg"
+            isLoading={loading}
+            className="w-full shadow-glow-sm"
+          >
+            Update Password
           </Button>
         </form>
       </div>

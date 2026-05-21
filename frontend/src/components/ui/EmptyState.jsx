@@ -1,23 +1,33 @@
-import { FolderOpen } from "lucide-react";
+import { SearchX } from "lucide-react";
 import { Button } from "./Button";
+import { cn } from "@/utils/cn";
 
-export function EmptyState({ 
-  title = "No data found", 
-  description = "Get started by creating a new entry.", 
-  actionLabel, 
-  onAction,
-  icon: Icon = FolderOpen 
+export function EmptyState({
+  icon: Icon = SearchX,
+  title = "Nothing found",
+  description = "Try adjusting your search or filters.",
+  action,
+  actionLabel = "Try again",
+  className,
 }) {
   return (
-    <div className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-evora-border bg-evora-surface-primary p-8 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-evora-surface-muted mb-6 text-evora-primary">
-        <Icon className="h-8 w-8" />
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center py-16 px-6 text-center",
+        className
+      )}
+    >
+      <div className="w-16 h-16 rounded-2xl bg-surface-elevated flex items-center justify-center mb-5">
+        <Icon size={28} className="text-text-muted" />
       </div>
-      <h3 className="font-display text-lg font-semibold text-evora-text-primary">{title}</h3>
-      <p className="mt-2 max-w-sm text-sm text-evora-text-secondary">{description}</p>
-      
-      {actionLabel && onAction && (
-        <Button onClick={onAction} className="mt-6">
+      <h3 className="font-headline text-headline-sm text-text-primary mb-2">
+        {title}
+      </h3>
+      <p className="text-body-sm text-text-muted max-w-sm mb-6">
+        {description}
+      </p>
+      {action && (
+        <Button variant="secondary" size="sm" onClick={action}>
           {actionLabel}
         </Button>
       )}

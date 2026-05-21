@@ -1,290 +1,237 @@
 import { useState } from "react";
-import useSWR, { mutate } from "swr";
-import { Plus, Trash2, Pencil } from "lucide-react";
-import { api, fetcher } from "@/api/axios";
-import { uiStore } from "@/store/uiStore";
-import { DataTable } from "@/components/ui/DataTable";
-import { Modal } from "@/components/ui/Modal";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Plus, Search, Edit, Eye } from "lucide-react";
+import { useEvents } from "@/hooks/useEvents";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { Input } from "@/components/ui/Input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { api } from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
+import { uiStore } from "@/store/uiStore";
+import { formatDate, seatsLeft } from "@/utils/format";
+import { cn } from "@/utils/cn";
+
+const createSchema = z.object({
+  title: z.string().min(3, "Title required"),
+  description: z.string().min(10, "Description too short"),
+  date: z.string().min(1, "Date required"),
+  venue: z.string().min(2, "Venue required"),
+  category: z.string().min(1, "Category required"),
+  maxSeats: z.coerce.number().min(1, "At least 1 seat"),
+  price: z.coerce.number().min(0, "Price must be 0 or more"),
+});
 
 export default function AdminEventsPage() {
-  const adminEventsKey = "/events/admin/all?limit=100";
-  const { data: responseData, isLoading } = useSWR(adminEventsKey, fetcher);
+  const [search, setSearch] = useState("");
+  const { events, isLoading, mutate } = useEvents({ search });
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
   const pushToast = uiStore((s) => s.pushToast);
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingEventId, setEditingEventId] = useState(null);
-  
-  const defaultFormData = {
-    title: "",
-    description: "",
-    startDate: "",
-    endDate: "",
-    venue: "",
-    category: "TECHNOLOGY",
-    maxSeats: 100,
-    banner: ""
-  };
-  const [formData, setFormData] = useState(defaultFormData);
 
-  const events = responseData?.items || responseData?.events || [];
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(createSchema) });
 
-  const handleDelete = async (eventId) => {
-    if (!window.confirm("Are you sure you want to delete this event? This action cannot be undone.")) return;
-    
+  const onCreateEvent = async (data) => {
+    setCreating(true);
     try {
-      await api.delete(`/events/${eventId}`);
-      pushToast({ type: "success", message: "Event deleted successfully." });
-      mutate(adminEventsKey);
-    } catch (error) {
-      // Error handled by interceptor
-    }
-  };
-
-  const handleEditClick = (event) => {
-    setFormData({
-      title: event.title,
-      description: event.description,
-      startDate: event.startDate ? event.startDate.slice(0, 16) : "",
-      endDate: event.endDate ? event.endDate.slice(0, 16) : "",
-      venue: event.venue,
-      category: event.category,
-      maxSeats: event.maxSeats,
-      banner: event.banner || ""
-    });
-    setEditingEventId(event._id);
-    setIsModalOpen(true);
-  };
-
-  const openCreateModal = () => {
-    setEditingEventId(null);
-    setFormData(defaultFormData);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingEventId(null);
-    setFormData(defaultFormData);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const title = formData.title.trim();
-      const description = formData.description.trim();
-      const venue = formData.venue.trim();
-      const category = formData.category.trim();
-      const banner = formData.banner.trim();
-      const maxSeats = Number(formData.maxSeats);
-      const startDate = new Date(formData.startDate);
-      const endDate = new Date(formData.endDate);
-
-      if (title.length < 3) {
-        pushToast({ type: "error", message: "title: Title must be at least 3 characters." });
-        return;
-      }
-      if (description.length < 20) {
-        pushToast({ type: "error", message: "description: Description must be at least 20 characters." });
-        return;
-      }
-      if (venue.length < 2) {
-        pushToast({ type: "error", message: "venue: Venue must be at least 2 characters." });
-        return;
-      }
-      if (!Number.isInteger(maxSeats) || maxSeats < 1) {
-        pushToast({ type: "error", message: "maxSeats: Max seats must be a whole number of at least 1." });
-        return;
-      }
-      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-        pushToast({ type: "error", message: "startDate: Start and end date must be valid." });
-        return;
-      }
-      if (endDate < startDate) {
-        pushToast({ type: "error", message: "endDate: End date must be after start date." });
-        return;
-      }
-
-      const payload = {
-        title,
-        description,
-        venue,
-        category,
-        maxSeats,
-        banner: banner || undefined,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString()
-      };
-      
-      if (!editingEventId) {
-        payload.status = "PUBLISHED";
-      }
-
-      if (editingEventId) {
-        await api.patch(`/events/${editingEventId}`, payload);
-        pushToast({ type: "success", message: "Event updated successfully." });
-      } else {
-        await api.post("/events", payload);
-        pushToast({ type: "success", message: "Event created successfully." });
-      }
-      
-      closeModal();
-      mutate(adminEventsKey);
-    } catch (error) {
-      // Error handled by interceptor
+      await api.post(endpoints.events.list, data);
+      pushToast({ type: "success", message: "Event created!" });
+      setShowCreate(false);
+      reset();
+      mutate();
+    } catch {
+      // handled
     } finally {
-      setIsSubmitting(false);
+      setCreating(false);
     }
   };
-
-  const columns = [
-    { header: "Title", accessor: "title" },
-    { header: "Location", accessor: "venue" },
-    { 
-      header: "Status", 
-      render: (row) => (
-        <span className="inline-flex items-center rounded-full bg-evora-primary/10 px-2.5 py-0.5 text-xs font-semibold text-evora-primary">
-          {row.status || "Upcoming"}
-        </span>
-      )
-    },
-    { 
-      header: "Seats", 
-      render: (row) => `${row.bookedSeats || 0}/${row.maxSeats}`
-    },
-    {
-      header: "Actions",
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => handleEditClick(row)}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-evora-primary transition-colors hover:bg-evora-primary/10"
-            title="Edit Event"
-          >
-            <Pencil className="h-4 w-4" />
-          </button>
-          <button 
-            onClick={() => handleDelete(row._id)}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
-            title="Delete Event"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-      )
-    }
-  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-evora-text-primary">Manage Events</h1>
-          <p className="mt-1 text-sm text-evora-text-secondary">Create, modify, and remove events from the platform.</p>
-        </div>
-        <Button onClick={openCreateModal} className="gap-2">
-          <Plus className="h-4 w-4" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="font-headline text-headline-lg tracking-tight">
+          Events
+        </h1>
+        <Button size="sm" onClick={() => setShowCreate(true)}>
+          <Plus size={16} />
           Create Event
         </Button>
       </div>
 
-      {isLoading ? (
-        <Skeleton className="h-64 w-full" />
-      ) : (
-        <DataTable columns={columns} data={events} keyField="_id" />
-      )}
+      {/* Search */}
+      <div className="relative">
+        <Search
+          size={18}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"
+        />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search events..."
+          className="w-full pl-11 pr-4 py-3 bg-surface border border-border rounded-xl text-text-primary text-body-sm placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+        />
+      </div>
 
+      {/* Table */}
+      <div className="bg-surface border border-border rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border/50">
+                <th className="text-left px-5 py-3 text-label-sm text-text-muted font-medium">
+                  Event
+                </th>
+                <th className="text-left px-5 py-3 text-label-sm text-text-muted font-medium hidden md:table-cell">
+                  Date
+                </th>
+                <th className="text-left px-5 py-3 text-label-sm text-text-muted font-medium hidden sm:table-cell">
+                  Category
+                </th>
+                <th className="text-left px-5 py-3 text-label-sm text-text-muted font-medium">
+                  Seats
+                </th>
+                <th className="text-right px-5 py-3 text-label-sm text-text-muted font-medium">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="border-b border-border/30">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <td key={j} className="p-5">
+                        <Skeleton className="h-4 w-20" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : events.length === 0 ? (
+                <tr>
+                  <td colSpan={5}>
+                    <EmptyState
+                      title="No events"
+                      description="Create your first event to get started."
+                    />
+                  </td>
+                </tr>
+              ) : (
+                events.map((event) => (
+                  <tr
+                    key={event._id}
+                    className="border-b border-border/30 hover:bg-surface-elevated/50 transition-colors"
+                  >
+                    <td className="px-5 py-4">
+                      <p className="text-body-sm font-medium text-text-primary truncate max-w-[200px]">
+                        {event.title}
+                      </p>
+                    </td>
+                    <td className="px-5 py-4 text-body-sm text-text-muted hidden md:table-cell">
+                      {formatDate(event.date)}
+                    </td>
+                    <td className="px-5 py-4 hidden sm:table-cell">
+                      <span className="text-label-sm text-text-muted bg-surface-elevated px-2.5 py-1 rounded-lg">
+                        {event.category || "—"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-body-sm text-text-muted">
+                      {event.bookedSeats || 0}/{event.maxSeats || 0}
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <a
+                          href={`/events/${event._id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-elevated transition-colors"
+                        >
+                          <Eye size={16} />
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Create Event Modal */}
       <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingEventId ? "Edit Event" : "Create New Event"}
+        isOpen={showCreate}
+        onClose={() => setShowCreate(false)}
+        title="Create Event"
+        className="max-w-lg"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input 
-            label="Event Title" 
-            placeholder="e.g. Future of Tech Summit"
-            required
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        <form onSubmit={handleSubmit(onCreateEvent)} className="space-y-4">
+          <Input
+            label="Title"
+            placeholder="Event name"
+            error={errors.title?.message}
+            {...register("title")}
           />
-          
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-evora-text-primary">Description</label>
-            <textarea
-              required
-              className="flex w-full rounded-xl border border-evora-border bg-evora-surface-secondary px-4 py-2 text-sm text-evora-text-primary placeholder:text-evora-text-muted focus:border-evora-primary focus:outline-none focus:ring-2 focus:ring-evora-primary/20 min-h-[100px]"
-              placeholder="Detailed description of the event..."
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            />
-          </div>
-
+          <Input
+            label="Description"
+            placeholder="Describe your event..."
+            error={errors.description?.message}
+            {...register("description")}
+          />
           <div className="grid grid-cols-2 gap-4">
-            <Input 
-              label="Start Date" 
-              type="datetime-local" 
-              required
-              value={formData.startDate}
-              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+            <Input
+              label="Date"
+              type="datetime-local"
+              error={errors.date?.message}
+              {...register("date")}
             />
-            <Input 
-              label="End Date" 
-              type="datetime-local" 
-              required
-              value={formData.endDate}
-              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+            <Input
+              label="Venue"
+              placeholder="Location"
+              error={errors.venue?.message}
+              {...register("venue")}
             />
           </div>
-
-          <Input 
-            label="Venue" 
-            placeholder="City, Venue or 'Online'"
-            required
-            value={formData.venue}
-            onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-          />
-
-          <Input 
-            label="Banner URL (Optional)" 
-            placeholder="https://example.com/image.jpg"
-            value={formData.banner}
-            onChange={(e) => setFormData({ ...formData, banner: e.target.value })}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-evora-text-primary">Category</label>
-              <select
-                className="flex h-12 w-full rounded-xl border border-evora-border bg-evora-surface-secondary px-4 text-sm text-evora-text-primary focus:border-evora-primary focus:outline-none focus:ring-2 focus:ring-evora-primary/20"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              >
-                <option value="TECHNOLOGY">Technology</option>
-                <option value="BUSINESS">Business</option>
-                <option value="DESIGN">Design</option>
-                <option value="NETWORKING">Networking</option>
-              </select>
-            </div>
-            <Input 
-              label="Max Seats" 
-              type="number" 
-              min="1"
-              required
-              value={formData.maxSeats}
-              onChange={(e) => setFormData({ ...formData, maxSeats: e.target.value })}
+          <div className="grid grid-cols-3 gap-4">
+            <Input
+              label="Category"
+              placeholder="e.g. Music"
+              error={errors.category?.message}
+              {...register("category")}
+            />
+            <Input
+              label="Max Seats"
+              type="number"
+              placeholder="100"
+              error={errors.maxSeats?.message}
+              {...register("maxSeats")}
+            />
+            <Input
+              label="Price ($)"
+              type="number"
+              placeholder="0"
+              error={errors.price?.message}
+              {...register("price")}
             />
           </div>
-
-          <div className="mt-6 flex justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={closeModal}>
-              Cancel
+          <div className="flex gap-3 pt-2">
+            <Button type="submit" isLoading={creating} className="flex-1">
+              Create Event
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : editingEventId ? "Save Changes" : "Create Event"}
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowCreate(false)}
+            >
+              Cancel
             </Button>
           </div>
         </form>

@@ -1,38 +1,49 @@
-import { X } from "lucide-react";
 import { uiStore } from "@/store/uiStore";
+import { X, CheckCircle, AlertCircle, Info } from "lucide-react";
+import { cn } from "@/utils/cn";
 
-const typeStyles = {
-  success: "border-emerald-200 bg-emerald-50 text-emerald-900",
-  error: "border-red-200 bg-red-50 text-red-900",
-  info: "border-sky-200 bg-sky-50 text-sky-900"
+const icons = {
+  success: CheckCircle,
+  error: AlertCircle,
+  info: Info,
+};
+
+const styles = {
+  success: "border-success/30 bg-success/10 text-success",
+  error: "border-error/30 bg-error/10 text-error",
+  info: "border-primary/30 bg-primary/10 text-primary",
 };
 
 export function ToastHub() {
   const toasts = uiStore((s) => s.toasts);
-  const dismissToast = uiStore((s) => s.dismissToast);
+  const dismiss = uiStore((s) => s.dismissToast);
 
   if (!toasts.length) return null;
 
   return (
-    <div className="pointer-events-none fixed right-4 top-4 z-[1000] flex w-full max-w-sm flex-col gap-3">
-      {toasts.map((toast) => (
-        <div
-          key={toast.id}
-          className={`pointer-events-auto flex items-start justify-between gap-3 rounded-xl border px-4 py-3 shadow-soft ${typeStyles[toast.type] || typeStyles.info}`}
-          role="status"
-          aria-live="polite"
-        >
-          <p className="text-sm leading-5">{toast.message}</p>
-          <button
-            type="button"
-            onClick={() => dismissToast(toast.id)}
-            className="rounded-md p-1 opacity-70 transition-opacity hover:opacity-100"
-            aria-label="Dismiss notification"
+    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+      {toasts.map((toast) => {
+        const Icon = icons[toast.type] || icons.info;
+        return (
+          <div
+            key={toast.id}
+            className={cn(
+              "pointer-events-auto flex items-start gap-3 p-4 rounded-xl border backdrop-blur-md animate-slide-up",
+              styles[toast.type] || styles.info
+            )}
           >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      ))}
+            <Icon size={18} className="mt-0.5 shrink-0" />
+            <p className="text-body-sm flex-1">{toast.message}</p>
+            <button
+              onClick={() => dismiss(toast.id)}
+              className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
+              aria-label="Dismiss"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }
