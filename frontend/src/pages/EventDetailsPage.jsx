@@ -22,15 +22,61 @@ export default function EventDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="container-reading space-y-8 py-8">
-        <Skeleton className="aspect-[21/9] w-full" />
-        <Skeleton className="h-12 w-2/3" />
-        <div className="flex gap-4">
-          <Skeleton className="h-6 w-32" />
-          <Skeleton className="h-6 w-32" />
+      <article className="container-reading pb-24 pt-8">
+        <div className="mb-6">
+          <Skeleton className="h-5 w-32" />
         </div>
-        <Skeleton className="h-40 w-full" />
-      </div>
+        <Skeleton className="relative mb-12 aspect-[21/9] w-full overflow-hidden rounded-2xl" />
+        
+        <div className="grid gap-12 md:grid-cols-3">
+          <div className="md:col-span-2 space-y-8">
+            <Skeleton className="h-14 w-3/4" />
+            <div className="space-y-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-4/5" />
+            </div>
+          </div>
+          
+          <div className="relative">
+            <div className="sticky top-24 flex flex-col space-y-6 rounded-2xl border border-evora-border bg-evora-surface-secondary p-6 shadow-soft">
+              <Skeleton className="h-7 w-1/3" />
+              
+              <div className="flex flex-col gap-4">
+                <div className="flex items-start gap-3">
+                  <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+                  <div className="space-y-2 flex-1 mt-0.5">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-40" />
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+                  <div className="space-y-2 flex-1 mt-0.5">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Skeleton className="h-5 w-5 rounded-full shrink-0" />
+                  <div className="space-y-2 flex-1 mt-0.5">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="pt-4 border-t border-evora-border-soft">
+                <Skeleton className="h-12 w-full rounded-xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
     );
   }
 

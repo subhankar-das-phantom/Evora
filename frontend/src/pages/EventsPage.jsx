@@ -39,11 +39,14 @@ export default function EventsPage() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-8">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex flex-col space-y-4">
-              <Skeleton className="aspect-[4/3] w-full" />
-              <div className="space-y-2 px-1">
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+            <div key={i} className="flex flex-col overflow-hidden rounded-2xl bg-evora-surface-secondary shadow-soft border border-evora-border">
+              <Skeleton className="aspect-[4/3] w-full rounded-none" />
+              <div className="flex flex-col p-5">
+                <Skeleton className="h-6 w-3/4 mb-4" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
               </div>
             </div>
           ))

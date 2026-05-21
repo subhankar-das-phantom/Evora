@@ -192,11 +192,7 @@ export default function AdminEventsPage() {
         </Button>
       </div>
 
-      {isLoading ? (
-        <Skeleton className="h-64 w-full" />
-      ) : (
-        <DataTable columns={columns} data={events} keyField="_id" />
-      )}
+      <DataTable columns={columns} data={events} keyField="_id" isLoading={isLoading} />
 
       <Modal
         isOpen={isModalOpen}

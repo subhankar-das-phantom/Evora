@@ -83,11 +83,7 @@ export default function AdminUsersPage() {
         )}
       </div>
 
-      {isLoading ? (
-        <Skeleton className="h-64 w-full" />
-      ) : (
-        <DataTable columns={columns} data={admins} keyField="_id" />
-      )}
+      <DataTable columns={columns} data={admins} keyField="_id" isLoading={isLoading} />
 
       {isSuperAdmin && (
         <Modal

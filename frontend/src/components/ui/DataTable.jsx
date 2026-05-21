@@ -1,4 +1,6 @@
-export function DataTable({ columns, data, keyField = "id" }) {
+import { Skeleton } from "@/components/ui/Skeleton";
+
+export function DataTable({ columns, data, keyField = "id", isLoading = false }) {
   return (
     <div className="w-full overflow-x-auto rounded-xl border border-evora-border bg-evora-surface-secondary shadow-soft">
       <table className="w-full text-left text-sm text-evora-text-secondary">
@@ -12,7 +14,17 @@ export function DataTable({ columns, data, keyField = "id" }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-evora-border-soft">
-          {data.length > 0 ? (
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, rowIndex) => (
+              <tr key={rowIndex}>
+                {columns.map((_, colIndex) => (
+                  <td key={colIndex} className="px-6 py-4">
+                    <Skeleton className="h-5 w-3/4 rounded-md" />
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : data && data.length > 0 ? (
             data.map((row) => (
               <tr 
                 key={row[keyField]} 
