@@ -64,7 +64,7 @@ export default function UserDashboard() {
                     className="flex flex-col rounded-2xl border border-evora-border bg-evora-surface-secondary p-5 shadow-soft"
                   >
                     <div className="mb-4 flex items-center justify-between">
-                      <span className="inline-flex items-center rounded-full bg-evora-support/20 px-2.5 py-0.5 text-xs font-semibold text-evora-support">
+                      <span className="inline-flex items-center rounded-full bg-evora-primary/10 px-2.5 py-0.5 text-xs font-semibold text-evora-primary">
                         {booking.bookingStatus}
                       </span>
                       <span className="text-xs font-medium text-evora-text-muted">
