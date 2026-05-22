@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
 
@@ -7,7 +8,9 @@ export function PublicLayout() {
       <Navbar />
       {/* Marketing Spacing: Large whitespace, editorial composition */}
       <main className="flex-1 w-full mt-16 pb-24">
-        <Outlet />
+        <Suspense fallback={null}>
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   );

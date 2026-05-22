@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Navbar } from "@/components/layout/Navbar"; // For mobile or top-bar in dashboard
@@ -14,7 +15,9 @@ export function DashboardLayout() {
         {/* Operational Clarity: Tighter spacing, denser information hierarchy */}
         <main className="flex-1 py-6">
           <div className="container-dashboard">
-            <Outlet />
+            <Suspense fallback={null}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       </div>

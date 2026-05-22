@@ -20,13 +20,7 @@ const AdminBookingsPage = lazy(() => import("@/pages/admin/AdminBookingsPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 function RouteLoader() {
-  return (
-    <div className="container-shell space-y-3 py-6">
-      <Skeleton className="h-12 w-56" />
-      <Skeleton className="h-56 w-full" />
-      <Skeleton className="h-56 w-full" />
-    </div>
-  );
+  return null;
 }
 
 export function AppRouter() {
