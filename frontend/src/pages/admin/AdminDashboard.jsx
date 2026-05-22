@@ -81,7 +81,18 @@ export default function AdminDashboard() {
       {/* Analytics Overview */}
       <div className="grid gap-4 sm:grid-cols-3">
         {statsLoading ? (
-          [1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full" />)
+          [1, 2, 3].map(i => (
+            <div key={i} className="flex flex-col rounded-2xl border border-evora-border bg-evora-surface-secondary p-6 shadow-soft">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-10 rounded-full" />
+              </div>
+              <div className="mt-4 flex items-baseline gap-2">
+                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-4 w-12" />
+              </div>
+            </div>
+          ))
         ) : (
           statCards.map((stat, i) => (
             <div key={i} className="flex flex-col rounded-2xl border border-evora-border bg-evora-surface-secondary p-6 shadow-soft">
@@ -125,15 +136,12 @@ export default function AdminDashboard() {
           </button>
         </div>
         
-        {eventsLoading ? (
-          <Skeleton className="h-64 w-full" />
-        ) : (
-          <DataTable 
-            columns={columns} 
-            data={recentEvents} 
-            keyField="_id" 
-          />
-        )}
+        <DataTable 
+          columns={columns} 
+          data={recentEvents} 
+          keyField="_id" 
+          isLoading={eventsLoading}
+        />
       </div>
     </div>
   );
