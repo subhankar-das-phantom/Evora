@@ -6,8 +6,25 @@
     <meta name="theme-color" content="#0B0F19" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>EVORA</title>
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem("evora-theme");
+          var html = document.documentElement;
+          if (stored === "dark") {
+            html.classList.add("dark");
+            html.style.backgroundColor = "#0C0F17";
+            html.style.color = "#E7E5E4";
+          } else {
+            html.classList.remove("dark");
+            html.style.backgroundColor = "#FAFAF9";
+            html.style.color = "#1C1917";
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-evora-bg text-evora-text">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
