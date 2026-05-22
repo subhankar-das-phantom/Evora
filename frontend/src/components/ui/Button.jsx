@@ -6,7 +6,7 @@ export const Button = forwardRef(({ className, variant = "primary", size = "md",
   
   const variants = {
     primary: "bg-evora-primary text-evora-primary-foreground hover:bg-evora-primary-hover shadow-soft",
-    secondary: "bg-evora-surface-secondary text-evora-text-primary border border-evora-border hover:bg-evora-surface-hover",
+    secondary: "bg-evora-surface-secondary text-evora-text-primary border border-evora-neutral-300 dark:border-evora-border hover:bg-evora-surface-hover",
     accent: "bg-evora-accent text-evora-accent-foreground hover:bg-evora-accent-hover shadow-soft",
     ghost: "text-evora-text-secondary hover:bg-evora-surface-hover hover:text-evora-text-primary",
     danger: "bg-red-500 text-white hover:bg-red-600",
