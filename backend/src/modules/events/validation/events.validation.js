@@ -19,7 +19,8 @@ const eventBodyShape = {
   location: venueSchema.optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
-  maxSeats: z.coerce.number().int().min(1).max(100000)
+  maxSeats: z.coerce.number().int().min(1).max(100000),
+  banner: z.string().max(2000).optional()
 };
 
 const createEventBodySchema = z
@@ -40,7 +41,10 @@ const createEventBodySchema = z
   .transform(normalizeEventPayload);
 
 const updateEventBodySchema = z
-  .object(eventBodyShape)
+  .object({
+    ...eventBodyShape,
+    status: z.enum(EVENT_STATUS_VALUES).optional()
+  })
   .partial()
   .strict()
   .refine((data) => Object.keys(data).length > 0, "At least one field is required")
