@@ -107,6 +107,13 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          <p className="text-xs text-center text-evora-text-muted">
+            By creating an account, you agree to our{" "}
+            <Link to="/privacy" className="underline hover:text-evora-text-primary transition-colors">Privacy Policy</Link>
+            {" "}and{" "}
+            <Link to="/terms" className="underline hover:text-evora-text-primary transition-colors">Terms & Conditions</Link>.
+          </p>
+
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Creating account..." : "Sign up"}
           </Button>
