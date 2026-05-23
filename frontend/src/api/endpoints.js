@@ -7,7 +7,11 @@ export const endpoints = {
     firstLoginPassword: "/auth/change-password-first-login"
   },
   users: {
-    me: "/users/me"
+    me: "/users/me",
+    avatar: "/users/me/avatar",
+    savedEvents: "/users/me/saved-events",
+    saveEvent: (eventId) => `/users/me/saved-events/${eventId}`,
+    unsaveEvent: (eventId) => `/users/me/saved-events/${eventId}`
   },
   events: {
     list: "/events",
