@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    savedEvents: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event"
+    }],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

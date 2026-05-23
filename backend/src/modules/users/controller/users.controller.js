@@ -24,3 +24,18 @@ export const updateMyAvatar = asyncHandler(async (req, res) => {
   return sendSuccess(res, "Avatar updated successfully", user);
 });
 
+export const saveEvent = asyncHandler(async (req, res) => {
+  const result = await usersService.saveEvent(req.user.userId, req.params.eventId);
+  return sendSuccess(res, "Event saved successfully", result);
+});
+
+export const unsaveEvent = asyncHandler(async (req, res) => {
+  const result = await usersService.unsaveEvent(req.user.userId, req.params.eventId);
+  return sendSuccess(res, "Event unsaved successfully", result);
+});
+
+export const getSavedEvents = asyncHandler(async (req, res) => {
+  const events = await usersService.getSavedEvents(req.user.userId);
+  return sendSuccess(res, "Saved events fetched successfully", events);
+});
+

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { objectIdSchema } from "../../../common/validators/objectId.js";
 
 export const updateProfileSchema = {
   body: z
@@ -10,5 +11,13 @@ export const updateProfileSchema = {
 
 export const emptyQuerySchema = {
   query: z.object({}).passthrough()
+};
+
+export const eventIdParamSchema = {
+  params: z
+    .object({
+      eventId: objectIdSchema
+    })
+    .strict()
 };
 

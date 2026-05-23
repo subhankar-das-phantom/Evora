@@ -25,11 +25,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
-    const isNetworkError = !error?.response && (error?.code === "ERR_NETWORK" || /Network Error/i.test(error?.message || ""));
+    const isConnectionRefused = !error?.response && error?.code === "ERR_NETWORK";
+    const isTimeout = error?.code === "ECONNABORTED" || error?.code === "ERR_CANCELED";
     let message = error?.response?.data?.message || "Request failed";
     
-    if (isNetworkError) {
-      message = "Backend is unreachable. Start EVORA backend on http://localhost:5000.";
+    if (isConnectionRefused) {
+      message = "Unable to connect to the server. Please check your internet connection or try again later.";
+    } else if (isTimeout) {
+      message = "Request timed out. Please try again.";
     } else if (error?.response?.data?.errors?.length) {
       const firstError = error.response.data.errors[0];
       message = `${firstError.path}: ${firstError.message}`;
@@ -39,7 +42,7 @@ api.interceptors.response.use(
       authStore.getState().logout();
     }
 
-    if (isNetworkError) {
+    if (isConnectionRefused || isTimeout) {
       const now = Date.now();
       if (now - lastNetworkToastAt > 5000) {
         uiStore.getState().pushToast({

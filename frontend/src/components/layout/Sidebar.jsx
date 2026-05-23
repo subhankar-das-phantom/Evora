@@ -28,6 +28,7 @@ export function Sidebar() {
     { label: "Manage Events", to: `${basePath}/events`, icon: Calendar },
     { label: "All Bookings", to: `${basePath}/bookings`, icon: Ticket },
     { label: "Users", to: `${basePath}/users`, icon: Users },
+    { label: "Settings", to: `${basePath}/settings`, icon: Settings },
   ];
 
   const userLinks = [

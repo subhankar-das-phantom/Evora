@@ -2,23 +2,63 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { format } from "date-fns";
-import { Calendar, MapPin, Users, ArrowLeft } from "lucide-react";
+import { Calendar, MapPin, Users, ArrowLeft, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { fetcher } from "@/api/axios";
-import { bookingsApi } from "@/features/bookings/bookings.api";
+import { endpoints } from "@/api/endpoints";
 import { uiStore } from "@/store/uiStore";
 import { useAuth } from "@/hooks/useAuth";
+import { useSavedEvents } from "@/hooks/useSavedEvents";
+import { savedEventsApi } from "@/features/events/savedEvents.api";
 
 export default function EventDetailsPage() {
   const navigate = useNavigate();
   const { eventId } = useParams();
-  const { data, error, isLoading, mutate } = useSWR(eventId ? `/events/${eventId}` : null, fetcher);
+  const { data, error, isLoading } = useSWR(eventId ? `/events/${eventId}` : null, fetcher);
   const pushToast = uiStore((s) => s.pushToast);
   const { isAuthenticated, user } = useAuth();
-  const [isBooking, setIsBooking] = useState(false);
+  
+  const { data: bookingsData } = useSWR(
+    isAuthenticated && user?.role === "USER" ? endpoints.bookings.mine : null,
+    fetcher
+  );
+
+  const { isSaved, mutate: mutateSaved } = useSavedEvents();
+  const [isTogglingSave, setIsTogglingSave] = useState(false);
+
+  const saved = isSaved(eventId);
+  const isUser = user?.role === "USER";
+
+  const handleToggleSave = async () => {
+    if (!isAuthenticated) {
+      pushToast({ type: "info", message: "Please sign in to save events." });
+      navigate("/login");
+      return;
+    }
+    if (!isUser) {
+      pushToast({ type: "info", message: "Only user accounts can save events." });
+      return;
+    }
+    if (isTogglingSave) return;
+    setIsTogglingSave(true);
+    try {
+      if (saved) {
+        await savedEventsApi.unsaveEvent(eventId);
+        pushToast({ type: "success", message: "Event removed from saved." });
+      } else {
+        await savedEventsApi.saveEvent(eventId);
+        pushToast({ type: "success", message: "Event saved!" });
+      }
+      mutateSaved();
+    } catch (_err) {
+      // handled by interceptor
+    } finally {
+      setIsTogglingSave(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -90,10 +130,15 @@ export default function EventDetailsPage() {
 
   const { title, description, category, venue, startDate, endDate, maxSeats, bookedSeats, banner, image } = data || {};
   const availableSeats = maxSeats - bookedSeats;
-  const isUser = user?.role === "USER";
   const hasEnded = endDate ? new Date(endDate) < new Date() : false;
 
-  const handleBookTicket = async () => {
+  const userBookings = bookingsData?.bookings || bookingsData || [];
+  const hasBooked = userBookings.some((booking) => {
+    const bookingEventId = typeof booking.eventId === "string" ? booking.eventId : booking.eventId?._id;
+    return bookingEventId === eventId;
+  });
+
+  const handleBookTicket = () => {
     if (!isAuthenticated) {
       pushToast({ type: "info", message: "Please sign in as a user to book tickets." });
       navigate("/login");
@@ -103,25 +148,15 @@ export default function EventDetailsPage() {
       pushToast({ type: "error", message: "Only user accounts can book tickets." });
       return;
     }
-    if (hasEnded || availableSeats <= 0 || isBooking) return;
-
-    setIsBooking(true);
-    try {
-      await bookingsApi.createBooking(eventId);
-      pushToast({ type: "success", message: "Ticket booked successfully." });
-      await mutate();
-    } catch (_error) {
-      // Errors are surfaced by axios interceptor + toast
-    } finally {
-      setIsBooking(false);
-    }
+    if (hasEnded || availableSeats <= 0) return;
+    navigate(`/events/${eventId}/book`);
   };
 
   const fallbackImages = {
-    TECHNOLOGY: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop", // Techy/Digital
-    BUSINESS: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop", // Corporate buildings
-    DESIGN: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=2000&auto=format&fit=crop", // Design/Colors
-    NETWORKING: "https://images.unsplash.com/photo-1515169067868-5387ec356754?q=80&w=2000&auto=format&fit=crop" // Event crowd
+    TECHNOLOGY: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2000&auto=format&fit=crop",
+    BUSINESS: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop",
+    DESIGN: "https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=2000&auto=format&fit=crop",
+    NETWORKING: "https://images.unsplash.com/photo-1515169067868-5387ec356754?q=80&w=2000&auto=format&fit=crop"
   };
 
   const defaultImage = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2000&auto=format&fit=crop";
@@ -146,6 +181,19 @@ export default function EventDetailsPage() {
         <div className="absolute left-6 top-6 rounded-full bg-evora-surface-secondary/90 px-4 py-1.5 text-sm font-semibold text-evora-text-primary backdrop-blur-md">
           {category}
         </div>
+        {/* Save button on banner */}
+        <button
+          onClick={handleToggleSave}
+          disabled={isTogglingSave}
+          className={`absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-all duration-fast ${
+            saved
+              ? "bg-red-500/90 text-white hover:bg-red-600/90"
+              : "bg-evora-surface-secondary/90 text-evora-text-secondary hover:bg-evora-surface-secondary hover:text-red-500"
+          }`}
+          title={saved ? "Unsave event" : "Save event"}
+        >
+          <Heart className={`h-5 w-5 ${saved ? "fill-current" : ""}`} />
+        </button>
       </div>
 
       {/* Content Layout */}
@@ -192,9 +240,24 @@ export default function EventDetailsPage() {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-evora-border-soft">
-              <Button size="lg" className="w-full" onClick={handleBookTicket} disabled={hasEnded || availableSeats <= 0 || isBooking}>
-                {hasEnded ? "Event Ended" : availableSeats <= 0 ? "Sold Out" : isBooking ? "Booking..." : "Book Ticket"}
+            <div className="pt-4 border-t border-evora-border-soft space-y-3">
+              {hasBooked ? (
+                <Button variant="secondary" size="lg" className="w-full" onClick={() => navigate("/dashboard/user")}>
+                  Already Booked (View Dashboard)
+                </Button>
+              ) : (
+                <Button size="lg" className="w-full" onClick={handleBookTicket} disabled={hasEnded || availableSeats <= 0}>
+                  {hasEnded ? "Event Ended" : availableSeats <= 0 ? "Sold Out" : "Book Ticket"}
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                className={`w-full gap-2 ${saved ? "text-red-500" : ""}`}
+                onClick={handleToggleSave}
+                disabled={isTogglingSave}
+              >
+                <Heart className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
+                {saved ? "Saved" : "Save Event"}
               </Button>
             </div>
           </div>
