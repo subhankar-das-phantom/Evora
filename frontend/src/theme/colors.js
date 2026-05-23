@@ -47,4 +47,8 @@ export const colors = {
     DEFAULT: "var(--border)",
     soft: "var(--border-soft)",
   },
+  trend: {
+    positive: "var(--trend-positive)",
+    negative: "var(--trend-negative)",
+  },
 };
