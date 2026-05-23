@@ -21,6 +21,9 @@
   --border: #E7E5E4;
   --border-soft: #F5F5F4;
 
+  --trend-positive: #16a34a;
+  --trend-negative: #dc2626;
+
   --scrollbar-track: #F5F5F4;
   --scrollbar-thumb: #D6D3D1;
 }
@@ -41,6 +44,9 @@
 
   --border: #27272A;
   --border-soft: #1C1C1F;
+
+  --trend-positive: #4ade80;
+  --trend-negative: #f87171;
 
   --scrollbar-track: #141820;
   --scrollbar-thumb: #27272A;
