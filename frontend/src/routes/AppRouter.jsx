@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
 const EventsPage = lazy(() => import("@/pages/EventsPage"));
 const EventDetailsPage = lazy(() => import("@/pages/EventDetailsPage"));
+const BookingPage = lazy(() => import("@/pages/BookingPage"));
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 const AboutPage = lazy(() => import("@/pages/AboutPage"));
@@ -16,10 +17,13 @@ const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 const TermsPage = lazy(() => import("@/pages/TermsPage"));
 const FirstLoginResetPage = lazy(() => import("@/pages/auth/FirstLoginResetPage"));
 const UserDashboardPage = lazy(() => import("@/pages/user/UserDashboard"));
+const SavedEventsPage = lazy(() => import("@/pages/user/SavedEventsPage"));
+const SettingsPage = lazy(() => import("@/pages/user/SettingsPage"));
 const AdminOverviewPage = lazy(() => import("@/pages/admin/AdminDashboard"));
 const AdminEventsPage = lazy(() => import("@/pages/admin/AdminEventsPage"));
 const AdminUsersPage = lazy(() => import("@/pages/admin/AdminUsersPage"));
 const AdminBookingsPage = lazy(() => import("@/pages/admin/AdminBookingsPage"));
+const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 function RouteLoader() {
@@ -43,15 +47,26 @@ export function AppRouter() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/first-login-reset" element={<FirstLoginResetPage />} />
+
+          {/* Booking page — needs PublicLayout but is protected + USER only */}
+          <Route element={<PublicLayout />}>
+            <Route element={<RoleRoute allow={["USER"]} />}>
+              <Route path="/events/:eventId/book" element={<BookingPage />} />
+            </Route>
+          </Route>
+
           <Route element={<DashboardLayout />}>
             <Route element={<RoleRoute allow={["USER"]} />}>
-              <Route path="/dashboard/user/*" element={<UserDashboardPage />} />
+              <Route path="/dashboard/user" element={<UserDashboardPage />} />
+              <Route path="/dashboard/user/saved" element={<SavedEventsPage />} />
+              <Route path="/dashboard/user/settings" element={<SettingsPage />} />
             </Route>
             <Route element={<RoleRoute allow={["ADMIN", "SUPER_ADMIN"]} />}>
               <Route path="/dashboard/admin" element={<AdminOverviewPage />} />
               <Route path="/dashboard/admin/events" element={<AdminEventsPage />} />
               <Route path="/dashboard/admin/users" element={<AdminUsersPage />} />
               <Route path="/dashboard/admin/bookings" element={<AdminBookingsPage />} />
+              <Route path="/dashboard/admin/settings" element={<AdminSettingsPage />} />
             </Route>
             <Route path="/dashboard" element={<Navigate to="/events" replace />} />
           </Route>
