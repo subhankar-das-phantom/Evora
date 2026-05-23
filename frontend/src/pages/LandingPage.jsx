@@ -207,7 +207,7 @@ export default function LandingPage() {
               Join thousands of organizers and attendees who have already made the switch to the most refined event platform on the web.
             </p>
             <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-center items-center gap-4 w-full mx-auto">
-              <Link to="/register" className="inline-flex h-14 items-center justify-center rounded-xl bg-evora-surface-secondary px-8 text-base font-medium text-evora-primary shadow-soft transition-all duration-fast ease-premium hover:bg-evora-surface-hover w-full sm:w-auto gap-2">
+              <Link to="/register" className="inline-flex h-14 items-center justify-center rounded-xl bg-white px-8 text-base font-medium text-evora-primary shadow-soft transition-all duration-medium ease-premium hover:bg-white/90 w-full sm:w-auto gap-2">
                 Start for Free
                 <ArrowRight className="h-4 w-4" />
               </Link>
@@ -223,19 +223,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Footer ─── */}
-      <footer className="border-t border-evora-border bg-evora-surface-secondary">
-        <div className="container-content flex flex-col items-center justify-between gap-6 py-10 sm:flex-row px-4 md:px-8">
-          <div className="font-display text-lg font-bold tracking-tight text-evora-primary">EVORA</div>
-          <nav className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm text-evora-text-secondary">
-            <Link to="/events" className="transition-colors hover:text-evora-text-primary">Events</Link>
-            <a href="#" className="transition-colors hover:text-evora-text-primary">About</a>
-            <a href="#" className="transition-colors hover:text-evora-text-primary">Privacy</a>
-            <a href="#" className="transition-colors hover:text-evora-text-primary">Terms</a>
-          </nav>
-          <p className="text-xs text-evora-text-muted text-center">&copy; {new Date().getFullYear()} Evora. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 }
