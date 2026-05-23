@@ -1,5 +1,6 @@
 import useSWR from "swr";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { Ticket, Calendar as CalendarIcon, MapPin } from "lucide-react";
 import { fetcher } from "@/api/axios";
 import { endpoints } from "@/api/endpoints";
@@ -11,6 +12,7 @@ export default function UserDashboard() {
   const { data, error, isLoading } = useSWR(endpoints.bookings.mine, fetcher);
 
   const bookings = data?.bookings || data || [];
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-8">
@@ -90,7 +92,7 @@ export default function UserDashboard() {
                     </div>
 
                     <div className="mt-6">
-                      <Button variant="secondary" className="w-full">
+                      <Button variant="secondary" className="w-full" onClick={() => navigate(`/events/${event._id}`)}>
                         View Details
                       </Button>
                     </div>
