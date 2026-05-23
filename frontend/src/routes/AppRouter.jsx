@@ -11,6 +11,9 @@ const EventsPage = lazy(() => import("@/pages/EventsPage"));
 const EventDetailsPage = lazy(() => import("@/pages/EventDetailsPage"));
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
+const AboutPage = lazy(() => import("@/pages/AboutPage"));
+const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
+const TermsPage = lazy(() => import("@/pages/TermsPage"));
 const FirstLoginResetPage = lazy(() => import("@/pages/auth/FirstLoginResetPage"));
 const UserDashboardPage = lazy(() => import("@/pages/user/UserDashboard"));
 const AdminOverviewPage = lazy(() => import("@/pages/admin/AdminDashboard"));
@@ -33,6 +36,9 @@ export function AppRouter() {
           <Route path="/events/:eventId" element={<EventDetailsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>
