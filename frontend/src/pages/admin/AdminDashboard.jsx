@@ -108,7 +108,7 @@ export default function AdminDashboard() {
                 </span>
                 <span 
                   className={`flex items-center text-xs font-medium ${
-                    stat.isPositive ? "text-evora-support" : "text-red-500"
+                    stat.isPositive ? "text-evora-trend-positive" : "text-evora-trend-negative"
                   }`}
                 >
                   <ArrowUpRight 
