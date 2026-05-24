@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { mutate } from "swr";
 import { Lock, ArrowRight } from "lucide-react";
 import { api } from "@/api/axios";
+import { endpoints } from "@/api/endpoints";
 import { authStore } from "@/store/authStore";
 import { uiStore } from "@/store/uiStore";
 import { Input } from "@/components/ui/Input";
@@ -43,6 +45,10 @@ export default function FirstLoginResetPage() {
         ...user,
         firstLoginRequired: false
       });
+
+      // Invalidate the SWR /users/me cache so RoleRoute doesn't
+      // see stale firstLoginRequired: true and redirect back here
+      await mutate(endpoints.users.me);
 
       pushToast({
         type: "success",

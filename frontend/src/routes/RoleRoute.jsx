@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export function RoleRoute({ allow = [] }) {
   const { user } = useAuth();
-  if ((user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && user?.firstLoginRequired) {
+  if (user?.role === "ADMIN" && user?.firstLoginRequired) {
     return <Navigate to="/first-login-reset" replace />;
   }
   if (!user || !allow.includes(user.role)) {
