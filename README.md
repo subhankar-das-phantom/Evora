@@ -1,6 +1,8 @@
 # EVORA — Premium Event Management Platform
 
-EVORA is a sleek, premium, and highly-curated event management platform designed to discover, book, and scale exclusive gatherings. Built using a modern MERN stack (MongoDB, Express, React, Node.js), it features a fully-functional Admin and Super Admin dashboard, dynamic analytics, real-time ticket ledger tracking, role-based controls, and a secure first-time password reset system for new administrative accounts.
+EVORA is a sleek, premium, and highly-curated event management platform designed to discover, book, and scale exclusive gatherings. Built using a modern MERN stack (MongoDB, Express, React, Node.js), Evora bridges the gap between event organizers and attendees by discarding cluttered legacy designs in favor of an elegant, frictionless ecosystem.
+
+It features a fully-functional Admin and Super Admin dashboard, dynamic analytics, real-time ticket ledger tracking, role-based controls, and a secure first-time password reset system for new administrative accounts.
 
 ---
 
@@ -8,9 +10,10 @@ EVORA is a sleek, premium, and highly-curated event management platform designed
 
 ### Frontend
 * **Core:** React 18, React Router DOM v6, Vite
-* **Styling:** TailwindCSS, Vanilla CSS, Lucide React (Icons), GSAP (Animations)
+* **Styling & Animation:** TailwindCSS, Vanilla CSS, Lucide React (Icons), Framer Motion, GSAP
+* **Forms & Validation:** React Hook Form, Zod
 * **Data Fetching:** SWR (State & cache management, automatic background revalidation)
-* **State Management:** Zustand (for Auth and UI toast state)
+* **Global State:** Zustand (for Auth and UI toast state)
 
 ### Backend
 * **Core:** Node.js, Express
