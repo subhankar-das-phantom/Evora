@@ -14,7 +14,7 @@ export function ToastHub() {
   if (!toasts.length) return null;
 
   return (
-    <div className="pointer-events-none fixed right-4 top-4 z-[1000] flex w-full max-w-sm flex-col gap-3">
+    <div className="pointer-events-none fixed left-4 right-4 top-4 z-[1000] flex flex-col gap-3 sm:left-auto sm:w-full sm:max-w-sm">
       {toasts.map((toast) => (
         <div
           key={toast.id}
