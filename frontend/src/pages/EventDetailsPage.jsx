@@ -28,8 +28,9 @@ export default function EventDetailsPage() {
 
   const { isSaved, mutate: mutateSaved } = useSavedEvents();
   const [isTogglingSave, setIsTogglingSave] = useState(false);
+  const [optimisticSaved, setOptimisticSaved] = useState(null);
 
-  const saved = isSaved(eventId);
+  const saved = optimisticSaved !== null ? optimisticSaved : isSaved(eventId);
   const isUser = user?.role === "USER";
 
   const handleToggleSave = async () => {
@@ -43,7 +44,11 @@ export default function EventDetailsPage() {
       return;
     }
     if (isTogglingSave) return;
+    
     setIsTogglingSave(true);
+    const willSave = !saved;
+    setOptimisticSaved(willSave); // Instant UI feedback
+
     try {
       if (saved) {
         await savedEventsApi.unsaveEvent(eventId);
@@ -52,11 +57,12 @@ export default function EventDetailsPage() {
         await savedEventsApi.saveEvent(eventId);
         pushToast({ type: "success", message: "Event saved!" });
       }
-      mutateSaved();
+      await mutateSaved();
     } catch (_err) {
-      // handled by interceptor
+      setOptimisticSaved(saved); // Rollback on error
     } finally {
       setIsTogglingSave(false);
+      setOptimisticSaved(null); // Release control back to SWR state
     }
   };
 
