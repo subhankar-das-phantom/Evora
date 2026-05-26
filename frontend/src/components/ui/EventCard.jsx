@@ -15,15 +15,20 @@ export function EventCard({ event }) {
   const { isSaved, mutate: mutateSaved } = useSavedEvents();
   const pushToast = uiStore((s) => s.pushToast);
   const [isToggling, setIsToggling] = useState(false);
+  const [optimisticSaved, setOptimisticSaved] = useState(null);
 
-  const saved = isSaved(_id);
+  const saved = optimisticSaved !== null ? optimisticSaved : isSaved(_id);
 
   const handleToggleSave = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isUser) return;
     if (isToggling) return;
+    
     setIsToggling(true);
+    const willSave = !saved;
+    setOptimisticSaved(willSave); // Instant UI feedback
+
     try {
       if (saved) {
         await savedEventsApi.unsaveEvent(_id);
@@ -32,11 +37,12 @@ export function EventCard({ event }) {
         await savedEventsApi.saveEvent(_id);
         pushToast({ type: "success", message: "Event saved!" });
       }
-      mutateSaved();
+      await mutateSaved();
     } catch (_err) {
-      // handled by interceptor
+      setOptimisticSaved(saved); // Rollback on error
     } finally {
       setIsToggling(false);
+      setOptimisticSaved(null); // Release control back to SWR state
     }
   };
 
