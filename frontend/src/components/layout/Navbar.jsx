@@ -100,7 +100,7 @@ export function Navbar() {
               </Link>
               <Link
                 to="/register"
-                className="inline-flex h-9 items-center justify-center rounded-xl bg-evora-primary px-5 text-sm font-medium text-evora-primary-foreground transition-all duration-fast ease-premium hover:bg-evora-primary-hover"
+                className="inline-flex h-9 items-center justify-center rounded-xl bg-evora-primary px-5 text-sm font-medium text-evora-text-secondary transition-all duration-fast ease-premium hover:bg-evora-primary-hover"
               >
                 Get Started
               </Link>
