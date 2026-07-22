@@ -69,12 +69,18 @@ export function Navbar() {
                 Dashboard
               </Link>
               <div className="flex items-center gap-3 border-l border-evora-border pl-6">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-evora-primary/10 text-xs font-semibold text-evora-primary">
-                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                </div>
-                <span className="text-sm font-medium text-evora-text-primary max-w-[120px] truncate">
-                  {user?.name || "User"}
-                </span>
+               <Link 
+                  to="/settings" 
+                  className="flex items-center gap-2 transition-opacity hover:opacity-80"
+                  title="Go to Profile"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-evora-primary/10 text-xs font-semibold text-evora-primary">
+                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                  <span className="text-sm font-medium text-evora-text-primary max-w-[120px] truncate">
+                    {user?.name || "User"}
+                  </span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-evora-text-muted transition-colors hover:bg-evora-surface-hover hover:text-evora-text-primary"
@@ -143,7 +149,7 @@ export function Navbar() {
 
             {isLoggedIn ? (
               <>
-                <Link
+               <Link
                   to={dashboardPath}
                   onClick={() => setMobileOpen(false)}
                   className="flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-medium text-evora-text-secondary hover:bg-evora-surface-hover"
@@ -151,7 +157,7 @@ export function Navbar() {
                   <LayoutDashboard className="h-4 w-4" /> Dashboard
                 </Link>
                 <Link
-                  to="/dashboard/user"
+                  to="/settings"
                   onClick={() => setMobileOpen(false)}
                   className="flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-medium text-evora-text-secondary hover:bg-evora-surface-hover"
                 >
