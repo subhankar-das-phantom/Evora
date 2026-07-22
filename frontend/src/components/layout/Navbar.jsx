@@ -70,24 +70,24 @@ export function Navbar() {
               </Link>
               <div className="flex items-center gap-3 border-l border-evora-border pl-6">
                <Link 
-                  to="/settings" 
-                  className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                  title="Go to Profile"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-evora-primary/10 text-xs font-semibold text-evora-primary">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                  </div>
-                  <span className="text-sm font-medium text-evora-text-primary max-w-[120px] truncate">
-                    {user?.name || "User"}
-                  </span>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-evora-text-muted transition-colors hover:bg-evora-surface-hover hover:text-evora-text-primary"
-                  title="Logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
+                 to="/dashboard/user/settings" 
+                 className="flex items-center gap-2 transition-opacity hover:opacity-80"
+                 title="Go to Profile"
+               >
+                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-evora-primary/10 text-xs font-semibold text-evora-primary">
+                   {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                 </div>
+                 <span className="text-sm font-medium text-evora-text-primary max-w-[120px] truncate">
+                   {user?.name || "User"}
+                 </span>
+               </Link>
+               <button
+                 onClick={handleLogout}
+                 className="flex h-8 w-8 items-center justify-center rounded-full text-evora-text-muted transition-colors hover:bg-evora-surface-hover hover:text-evora-text-primary"
+                 title="Logout"
+               >
+                 <LogOut className="h-4 w-4" />
+               </button>
               </div>
             </>
           ) : (
@@ -150,26 +150,26 @@ export function Navbar() {
             {isLoggedIn ? (
               <>
                <Link
-                  to={dashboardPath}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-medium text-evora-text-secondary hover:bg-evora-surface-hover"
-                >
-                  <LayoutDashboard className="h-4 w-4" /> Dashboard
-                </Link>
-                <Link
-                  to="/settings"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-medium text-evora-text-secondary hover:bg-evora-surface-hover"
-                >
-                  <User className="h-4 w-4" /> Profile
-                </Link>
-                <div className="my-2 border-t border-evora-border" />
-                <button
-                  onClick={handleLogout}
-                  className="flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-medium text-red-500 hover:bg-red-50"
-                >
-                  <LogOut className="h-4 w-4" /> Sign out
-                </button>
+                 to={dashboardPath}
+                 onClick={() => setMobileOpen(false)}
+                 className="flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-medium text-evora-text-secondary hover:bg-evora-surface-hover"
+               >
+                 <LayoutDashboard className="h-4 w-4" /> Dashboard
+               </Link>
+               <Link
+                 to="/dashboard/user/settings"
+                 onClick={() => setMobileOpen(false)}
+                 className="flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-medium text-evora-text-secondary hover:bg-evora-surface-hover"
+               >
+                 <User className="h-4 w-4" /> Profile
+               </Link>
+               <div className="my-2 border-t border-evora-border" />
+               <button
+                 onClick={handleLogout}
+                 className="flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-medium text-red-500 hover:bg-red-50"
+               >
+                 <LogOut className="h-4 w-4" /> Sign out
+               </button>
               </>
             ) : (
               <>
