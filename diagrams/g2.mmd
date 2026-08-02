@@ -1,0 +1,27 @@
+flowchart LR
+    User(["Registered User"])
+    Admin(["Event Admin"])
+    SuperAdmin(["Super Admin"])
+
+    UC_Auth("Register / Login")
+    UC_Browse("Browse Events")
+    UC_Book("Book Tickets")
+    UC_History("View Booking History")
+    UC_Manage("Manage Events (CRUD)")
+    UC_Dash("View Analytics Dashboard")
+    UC_Admins("Appoint/Manage Admins")
+
+    User --> UC_Auth
+    User --> UC_Browse
+    User --> UC_Book
+    User --> UC_History
+
+    Admin --> UC_Auth
+    Admin --> UC_Manage
+    Admin --> UC_Dash
+    Admin --> UC_History
+
+    SuperAdmin --> UC_Auth
+    SuperAdmin --> UC_Manage
+    SuperAdmin --> UC_Dash
+    SuperAdmin --> UC_Admins

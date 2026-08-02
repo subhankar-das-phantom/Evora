@@ -1,0 +1,29 @@
+flowchart LR
+    subgraph Client Application
+        UI[React UI Components]
+        State[Zustand / SWR State]
+        Router[React Router]
+        UI --> State
+        State --> UI
+        State --> Router
+        Router --> State
+    end
+    
+    subgraph Backend Server
+        API[Express REST API]
+        Auth[JWT Authentication]
+        Router2[Express Routes]
+        API --> Auth
+        Auth --> API
+        Auth --> Router2
+        Router2 --> Auth
+    end
+    
+    subgraph Cloud Database
+        DB[(MongoDB Atlas)]
+    end
+
+    Router -- "HTTP/HTTPS JSON" --> API
+    API -- "HTTP/HTTPS JSON" --> Router
+    Router2 -- "Mongoose ODM" --> DB
+    DB -- "Mongoose ODM" --> Router2

@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant Client (React)
+    participant Server (Express)
+    participant Database (MongoDB)
+
+    Client->>Server: POST /api/auth/login (email, password)
+    Server->>Database: Find user by email
+    Database-->>Server: Return User Document
+    Server->>Server: Validate Password (bcrypt.compare)
+    Server->>Server: Generate JWT Token
+    Server-->>Client: 200 OK (Token + User Object)
+    Client->>Client: Store Token (Local Storage / State)
+    Client->>Server: GET /api/user/profile (Auth Header)
+    Server-->>Client: 200 OK (Protected Data)
