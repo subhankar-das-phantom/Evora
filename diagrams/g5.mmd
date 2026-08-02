@@ -1,0 +1,35 @@
+erDiagram
+    USER ||--o{ BOOKING : places
+    USER ||--o{ EVENT : organizes
+    EVENT ||--o{ BOOKING : receives
+    
+    USER {
+        ObjectId _id PK
+        String name
+        String email
+        String password
+        String role
+        Boolean isFirstLogin
+    }
+    
+    EVENT {
+        ObjectId _id PK
+        String title
+        String description
+        Date date
+        String location
+        Number totalCapacity
+        Number ticketsSold
+        Number price
+        ObjectId organizer FK
+    }
+    
+    BOOKING {
+        ObjectId _id PK
+        ObjectId user FK
+        ObjectId event FK
+        Number ticketsCount
+        Number totalAmount
+        Date bookingDate
+        String status
+    }

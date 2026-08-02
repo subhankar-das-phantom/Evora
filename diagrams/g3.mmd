@@ -1,0 +1,21 @@
+stateDiagram-v2
+    [*] --> BrowseEvents
+    BrowseEvents --> SelectEvent
+    SelectEvent --> CheckAvailability
+    
+    CheckAvailability --> TicketsAvailable: Yes
+    CheckAvailability --> SoldOut: No
+    
+    SoldOut --> BrowseEvents
+    
+    TicketsAvailable --> LoginCheck
+    LoginCheck --> LoggedIn: Yes
+    LoginCheck --> LoggedOut: No
+    
+    LoggedOut --> RedirectToLogin
+    RedirectToLogin --> LoginCheck
+    
+    LoggedIn --> ConfirmBooking
+    ConfirmBooking --> UpdateLedger
+    UpdateLedger --> GenerateTicket
+    GenerateTicket --> [*]
