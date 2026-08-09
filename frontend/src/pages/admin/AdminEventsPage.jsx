@@ -13,6 +13,8 @@ export default function AdminEventsPage() {
   const adminEventsKey = "/events/admin/all?limit=100";
   const { data: responseData, isLoading } = useSWR(adminEventsKey, fetcher);
   const pushToast = uiStore((s) => s.pushToast);
+  const revalidatePublicEventLists = () =>
+    mutate((key) => typeof key === "string" && key.startsWith("/events?"));
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +40,7 @@ export default function AdminEventsPage() {
     try {
       await api.delete(`/events/${eventId}`);
       pushToast({ type: "success", message: "Event deleted successfully." });
-      mutate(adminEventsKey);
+      await Promise.all([mutate(adminEventsKey), revalidatePublicEventLists()]);
     } catch (error) {
       // Error handled by interceptor
     }
@@ -133,7 +135,7 @@ export default function AdminEventsPage() {
       }
       
       closeModal();
-      mutate(adminEventsKey);
+      await Promise.all([mutate(adminEventsKey), revalidatePublicEventLists()]);
     } catch (error) {
       // Error handled by interceptor
     } finally {
