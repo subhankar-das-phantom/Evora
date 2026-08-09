@@ -61,9 +61,12 @@ export const eventsService = {
       throw new AppError("Event not found", 404);
     }
 
-    if (payload.startDate || payload.endDate) {
-      const startDate = payload.startDate ? new Date(payload.startDate) : event.startDate;
-      const endDate = payload.endDate ? new Date(payload.endDate) : event.endDate;
+    const hasDateUpdate = payload.startDate !== undefined || payload.endDate !== undefined;
+    let startDate = event.startDate;
+    let endDate = event.endDate;
+    if (hasDateUpdate) {
+      startDate = payload.startDate ? new Date(payload.startDate) : event.startDate;
+      endDate = payload.endDate ? new Date(payload.endDate) : event.endDate;
       if (endDate < startDate) {
         throw new AppError("endDate must be greater than or equal to startDate", 400);
       }
@@ -75,6 +78,18 @@ export const eventsService = {
 
     if (payload.title && payload.title !== event.title) {
       payload.slug = await ensureUniqueSlug(payload.title, eventId);
+    }
+
+    // A completed event is hidden from the public list. If an admin reschedules
+    // it into the future, make it discoverable again unless they explicitly
+    // chose a different status in this request.
+    if (
+      event.status === EVENT_STATUS.COMPLETED &&
+      hasDateUpdate &&
+      payload.status === undefined &&
+      endDate >= new Date()
+    ) {
+      payload.status = EVENT_STATUS.PUBLISHED;
     }
 
     return eventsRepository.findByIdAndUpdate(eventId, payload);
